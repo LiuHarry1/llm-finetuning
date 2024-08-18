@@ -8,11 +8,19 @@ data = {
     "instruction": [
         "What is the capital of France?",
         "What is 2 + 2?",
+        "what is alert 38?",
+        "what is initial notification?",
+        "what is announcement in aspen?",
+        "when alert 33 is raised in aspen system?",
         "How do you greet someone in English?"
     ],
     "response": [
         "The capital of France is Paris.",
         "2 + 2 equals 4.",
+        "Alert 38 is to alert user to review position pulled from upstream after locking date. it needs to go through maker/checker.",
+        "initial notification is created when event is created and this event has positions in any processing unit.",
+        "announcement is created when there is an event in cooperation.",
+        "alert 33 is high value alert, which is raised when there is high value payments.",
         "You greet someone by saying 'Hello' in English."
     ]
 }
@@ -23,7 +31,7 @@ dataset.save_to_disk("simple_dataset")
 
 
 # Load the model and tokenizer
-model_name = "/Users/harry/Documents/apps/ml/llama-2-7b-chat"
+model_name = r"C:\apps\ml_model\llama2-7b-chat-hf"
 print("starting to load tokenizer.")
 tokenizer = LlamaTokenizer.from_pretrained(model_name)
 print("starting to load model.")
@@ -41,6 +49,8 @@ lora_config = LoraConfig(
 print("Starting to get peft model")
 # Wrap the model with LoRA
 model = get_peft_model(model, lora_config)
+
+tokenizer.pad_token = tokenizer.eos_token
 
 # if tokenizer.pad_token is None:
 #     tokenizer.add_special_tokens({'pad_token':'PAD'})
