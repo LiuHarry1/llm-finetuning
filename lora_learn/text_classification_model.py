@@ -32,13 +32,13 @@ class LSTMClassifier(nn.Module):
         c_0 = torch.zeros(1, x.size(0), 64)  # Cell state
         _, (h_n, _) = self.lstm(x.unsqueeze(1), (h_0, c_0))
         out = self.fc(h_n[-1])
-        return out
+        return out.squeeze(1)  # Ensure output has shape (batch_size, 1)
 
 
 def train_and_save_model(model_path: str):
     # Sample dataset
-    texts = ['I love this movie', 'This movie is terrible', 'Best film ever', 'Worst film ever']
-    labels = ['positive', 'negative', 'positive', 'negative']
+    texts = ['I love this movie', 'greate movie', 'This movie is terrible', 'Best film ever', 'Worst film ever']
+    labels = ['positive', 'positive',  'negative', 'positive', 'negative']
 
     # Encode the labels
     label_encoder = LabelEncoder()
@@ -66,8 +66,8 @@ def train_and_save_model(model_path: str):
         model.train()
         for texts, labels in train_loader:
             optimizer.zero_grad()
-            outputs = model(texts)
-            loss = criterion(outputs.squeeze(), labels.float())
+            outputs = model(texts)  # Model output shape should be (batch_size, 1)
+            loss = criterion(outputs.squeeze(), labels.float())  # Match the shapes
             loss.backward()
             optimizer.step()
         print(f"Epoch {epoch + 1}/5, Loss: {loss.item()}")
@@ -129,7 +129,7 @@ def fine_tune_with_lora(model_path: str):
 
 if __name__ == '__main__':
     # Train and save the model
-    train_and_save_model('text_classification_model.pth')
+    # train_and_save_model('text_classification_model.pth')
 
     # Fine-tune the model with LoRA
-    # fine_tune_with_lora('text_classification_model.pth')
+    fine_tune_with_lora('text_classification_model.pth')
