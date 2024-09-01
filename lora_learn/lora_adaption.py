@@ -79,7 +79,7 @@ def train_and_save_model(model_path: str, vectorizer_path: str):
     torch.save(model.state_dict(), model_path)
 
     print(f"Model saved to {model_path}")
-
+    print(model)
     summary(model, input_size=(X_train.shape[1],))
 
     # # Create a dummy input tensor for visualization (e.g., batch size of 1)
@@ -134,7 +134,7 @@ def fine_tune_with_lora(model_path: str, vectorizer_path: str):
     # Integrate LoRA into the model
     model = get_peft_model(model, lora_config)
 
-
+    print(model)
     summary(model, input_size=(X.shape[1],))
 
     # # Create a dummy input tensor for visualization (e.g., batch size of 1 and input_dim size)
