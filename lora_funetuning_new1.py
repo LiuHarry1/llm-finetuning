@@ -41,6 +41,7 @@ tokenized_train = train_dataset.map(tokenize_function, batched=True)
 tokenized_val = val_dataset.map(tokenize_function, batched=True)
 tokenizer.pad_token = tokenizer.eos_token
 
+
 # Fine-tune the model using the Trainer API
 training_args = TrainingArguments(
     output_dir="./results",
@@ -52,6 +53,14 @@ training_args = TrainingArguments(
     weight_decay=0.01,
     logging_dir="./logs",
     logging_steps=10,
+
+    warmup_ratio=0.1,  # warm up over 10% of training
+    # warmup_steps=100,
+    lr_scheduler_type="linear",  # learning rate decays after warmup
+
+    # fp16=True,  # ✅ 开启 FP16 混合精度
+    # fp16_opt_level="O1",  # 默认推荐 'O1'，性能+稳定性平衡
+    # half_precision_backend="auto"  # 自动选择 AMP（推荐）
 )
 
 trainer = Trainer(
@@ -71,3 +80,5 @@ model.save_pretrained("./fine_tuned_llama3_lora")
 # Conversion to GGUF can be done using external tools (e.g., llama.cpp), which might require exporting the model to a format like `pt` or `bin`.
 # Example with Hugging Face Transformers:
 model.save_pretrained("./fine_tuned_llama3_lora", safe_serialization=True)
+
+
