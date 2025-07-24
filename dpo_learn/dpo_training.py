@@ -7,7 +7,6 @@ from trl import DPOTrainer, DPOConfig
 # ----------- 配置模型和路径 -----------
 model_name = "C:\\apps\\ml_model\\Llama-3.2-1B-Instruct"
 output_dir = ".\\dpo_llama3_lora"
-dataset_path = "./preference_dataset.json"  # 本地偏好数据
 
 # ----------- 加载分词器 -----------
 tokenizer = AutoTokenizer.from_pretrained(model_name)

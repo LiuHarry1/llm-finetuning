@@ -1,0 +1,8 @@
+C:\Users\Harry\anaconda3\envs\dpo-env\python.exe C:\Users\Harry\PycharmProjects\llm-finetuning\dpo_learn\dpo_training.py
+Extracting prompt in train dataset: 100%|██████████| 42537/42537 [00:07<00:00, 5913.62 examples/s]
+Applying chat template to train dataset: 100%|██████████| 42537/42537 [00:03<00:00, 11679.60 examples/s]
+Tokenizing train dataset: 100%|██████████| 42537/42537 [00:32<00:00, 1297.90 examples/s]
+No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+  0%|          | 10/15954 [15:03<348:14:50, 78.63s/it]{'loss': 0.6931, 'grad_norm': 0.531883955001831, 'learning_rate': 2.8195488721804513e-07, 'rewards/chosen': 6.592274530703435e-07, 'rewards/rejected': 6.079672232317535e-08, 'rewards/accuracies': 0.3499999940395355, 'rewards/margins': 5.984308018014417e-07, 'logps/chosen': -88.91704559326172, 'logps/rejected': -107.3446044921875, 'logits/chosen': 2.318979501724243, 'logits/rejected': 2.3441293239593506, 'epoch': 0.0}
+  0%|          | 20/15954 [28:57<350:06:06, 79.10s/it]{'loss': 0.6931, 'grad_norm': 0.5175600647926331, 'learning_rate': 5.952380952380952e-07, 'rewards/chosen': 5.596875780611299e-06, 'rewards/rejected': -2.9897687454649713e-06, 'rewards/accuracies': 0.512499988079071, 'rewards/margins': 8.586646799813025e-06, 'logps/chosen': -92.2518539428711, 'logps/rejected': -98.92855834960938, 'logits/chosen': 2.4450747966766357, 'logits/rejected': 2.2457969188690186, 'epoch': 0.0}
+  0%|          | 27/15954 [40:01<383:41:27, 86.73s/it]
