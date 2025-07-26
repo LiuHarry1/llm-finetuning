@@ -30,10 +30,10 @@ class MyRewardDataCollator:
         rejected_batch = self.data_collator(rejected)
 
         return {
-            "input_ids_chosen": chosen_batch["input_ids"],
-            "attention_mask_chosen": chosen_batch["attention_mask"],
-            "input_ids_rejected": rejected_batch["input_ids"],
-            "attention_mask_rejected": rejected_batch["attention_mask"],
+            "chosen_input_ids": chosen_batch["input_ids"],
+            "chosen_attention_mask": chosen_batch["attention_mask"],
+            "rejected_input_ids": rejected_batch["input_ids"],
+            "rejected_attention_mask": rejected_batch["attention_mask"],
         }
 
 
@@ -43,8 +43,8 @@ def preprocess(example):
     rejected = example["rejected"]
     prompt = example.get("prompt", "")
 
-    tokenized_chosen = tokenizer(prompt + chosen, truncation=True, padding="max_length", max_length=256)
-    tokenized_rejected = tokenizer(prompt + rejected, truncation=True, padding="max_length", max_length=256)
+    tokenized_chosen = tokenizer(prompt + chosen, truncation=True, padding="max_length", max_length=1024)
+    tokenized_rejected = tokenizer(prompt + rejected, truncation=True, padding="max_length", max_length=1024)
 
     return {
         "input_ids_chosen": tokenized_chosen["input_ids"],
@@ -53,7 +53,7 @@ def preprocess(example):
         "attention_mask_rejected": tokenized_rejected["attention_mask"],
     }
 
-dataset = dataset.map(preprocess)
+dataset = dataset.map(preprocess, remove_columns=dataset.column_names)
 
 
 
@@ -85,7 +85,7 @@ training_args = RewardConfig(
     num_train_epochs=3,
     logging_steps=10,
     save_strategy="epoch",
-    # remove_unused_columns=False,
+    remove_unused_columns=False,
     # bf16=True,  # 或根据硬件选择 fp16/bf16
     fp16= True
 )
