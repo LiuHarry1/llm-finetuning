@@ -20,3 +20,6 @@ cd llama.cpp/build/bin && \
 quantize.exe C:\Users\Harry\PycharmProjects\llm-finetuning\llama2-finetuned-combined\llama2-7b-chat_f16.gguf C:\Users\Harry\PycharmProjects\llm-finetuning\llama2-finetuned-combined\llama2-7b-chat_f16-q4_0.gguf q4_0
 
 main -m C:\Users\Harry\PycharmProjects\llm-finetuning\llama2-finetuned-combined\llama2-7b-chat_f16-q4_0.gguf --color --ctx_size 2048 -n -1 -ins -b 256 --top_k 10000 --temp 0.2 --repeat_penalty 1.1 -t 8
+
+
+main -m /Users/harry/PycharmProjects/llama.cpp/models3/Meta-Llama-3-8B-Instruct.Q4_0.gguf --color --ctx_size 2048 -n -1 -ins -b 256 --top_k 10000 --temp 0.2 --repeat_penalty 1.1 -t 8
