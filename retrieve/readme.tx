@@ -1,0 +1,8 @@
+GET /rest/api/2/issue/{issueIdOrKey}?fields=description&expand=renderedFields
+fields=description 是获取原始description文本（通常是wiki格式或纯文本），
+
+expand=renderedFields 可以获取渲染好的HTML版本。
+
+jira_table3.py
+
+from bs4 import BeautifulSoup  , 解析html。
