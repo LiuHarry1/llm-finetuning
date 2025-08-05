@@ -78,3 +78,14 @@ for block in content:
     print(block["type"])
     print(block["content"])
     print("----")
+
+
+import pandas as pd
+from io import StringIO
+
+html = html_description
+soup = BeautifulSoup(html, 'html.parser')
+table = pd.read_html(StringIO(str(soup)))[0]
+markdown = table.to_markdown(index=False)
+print(table.to_json())
+print(markdown)
