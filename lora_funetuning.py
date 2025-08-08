@@ -1,4 +1,4 @@
-from transformers import LlamaTokenizer, LlamaForCausalLM, Trainer, TrainingArguments
+from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
 from peft import get_peft_model, LoraConfig, TaskType
 from datasets import load_from_disk
 
@@ -32,12 +32,14 @@ dataset.save_to_disk("simple_dataset")
 
 
 # Load the model and tokenizer
-model_name = r"C:\apps\ml_model\llama2-7b-chat-hf"
+# model_name = r"C:\apps\ml_model\llama2-7b-chat-hf"
+model_name = r"C:\apps\ml_model\llama3-8b-instruction-hf\llama-3-8b-chat-hf"
+# model_name = r"C:\apps\ml_model\Llama-3.2-3B-Instruct"
 print("starting to load tokenizer.")
-tokenizer = LlamaTokenizer.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 print("starting to load model.")
 # Load model with 8-bit precision
-model = LlamaForCausalLM.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
 print("Finished to load model")
 # Define LoRA configuration
 lora_config = LoraConfig(

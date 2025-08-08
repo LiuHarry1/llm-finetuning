@@ -1,0 +1,1 @@
+pip install torch==2.6.0+cu118 torchvision==0.19.0+cu118 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu118
