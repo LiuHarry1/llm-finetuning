@@ -9,6 +9,7 @@ base_model  = r"C:\apps\ml_model\Llama-3.2-3B-Instruct"
 
 tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token  # 必须设置 pad_token
+tokenizer.padding_side = "right"
 
 model = AutoModelForCausalLM.from_pretrained(
     base_model,
