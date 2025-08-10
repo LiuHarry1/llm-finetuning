@@ -77,7 +77,7 @@ trainer = Trainer(
 
 )
 
-# trainer.train(resume_from_checkpoint=True)
-trainer.train()
+trainer.train(resume_from_checkpoint=True)
+# trainer.train()
 model.save_pretrained("lora-llama3-mental-health")
 tokenizer.save_pretrained("lora-llama3-mental-health")

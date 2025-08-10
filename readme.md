@@ -23,3 +23,22 @@ main -m C:\Users\Harry\PycharmProjects\llm-finetuning\llama2-finetuned-combined\
 
 
 main -m /Users/harry/PycharmProjects/llama.cpp/models3/Meta-Llama-3-8B-Instruct.Q4_0.gguf --color --ctx_size 2048 -n -1 -ins -b 256 --top_k 10000 --temp 0.2 --repeat_penalty 1.1 -t 8
+
+
+
+python convert.py C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined --outfile C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined\llama3-3b-chat_f16.gguf --outtype f16
+
+python convert_hf_to_gguf.py C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined --outfile C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined\llama3-3b-chat_f16.gguf --outtype f16
+
+quantize.exe C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined\llama3-3b-chat_f16.gguf C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined\llama3-3b-chat_q4.gguf q4_0
+
+main -m C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined\llama3-3b-chat_q4.gguf --color --ctx_size 2048 -n -1 -ins -b 256 --top_k 10000 --temp 0.2 --repeat_penalty 1.1 -t 8
+
+
+llama-cli -m C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined\llama3-3b-chat_q4.gguf
+
+llama-cli -m C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\llama3.2-3b-finetuned-combined\llama3-3b-chat_q4.gguf  -i -n 512 -p "你好，请用中文介绍你自己。"
+./llama-cli \
+  -m models/llama-7b.Q4_K_M.gguf \
+  -i \
+  -n 512

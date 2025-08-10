@@ -2,8 +2,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from peft import PeftModel
 import torch
 
-base_model = "meta-llama/Llama-3-8b-chat-hf"
-adapter_path = "lora-llama3-mental-health"
+base_model  = r"C:\apps\ml_model\Llama-3.2-3B-Instruct"
+adapter_path = "lora-llama3-mental-health1"
 
 tokenizer = AutoTokenizer.from_pretrained(base_model)
 model = AutoModelForCausalLM.from_pretrained(

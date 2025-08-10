@@ -8,3 +8,8 @@ if torch.cuda.is_available():
 else:
     print("❌ 没有检测到 GPU，将使用 CPU")
 
+import transformers
+print(transformers.__version__)
+
+from transformers import TrainingArguments
+print(TrainingArguments.__module__)
