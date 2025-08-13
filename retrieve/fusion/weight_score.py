@@ -1,5 +1,4 @@
 from llama_index.core.retrievers import HybridRetriever
-from llama_index.core.retrievers.fusion_retriever import
 
 retriever = HybridRetriever(
     vector_retriever=vector_retriever,
