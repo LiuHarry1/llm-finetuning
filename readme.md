@@ -42,3 +42,6 @@ llama-cli -m C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\
   -m models/llama-7b.Q4_K_M.gguf \
   -i \
   -n 512
+
+
+https://bailian.console.aliyun.com/?tab=model#/model-market
