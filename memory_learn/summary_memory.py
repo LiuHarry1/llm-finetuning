@@ -22,7 +22,7 @@ chat_history = [
 ]
 
 # model = "gpt-4-0125-preview"
-# summarizer_llm = OpenAiLlm(model_name=model, max_tokens=256)
+summarizer_llm = OpenAiLlm(model_name=model, max_tokens=256)
 summarizer_llm = OpenAI(
     # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx",
     api_key=os.getenv("DASHSCOPE_API_KEY"),
