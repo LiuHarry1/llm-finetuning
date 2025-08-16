@@ -6,7 +6,6 @@ from langchain_openai import ChatOpenAI
 import requests
 import pandas as pd
 from langchain_community.chat_models import ChatTongyi
-from langgraph.types import Send
 
 llm = ChatTongyi(
     model="qwen-plus",
@@ -172,7 +171,7 @@ def show_workflow_pic(workflow):
 # ========== 示例运行 ==========
 if __name__ == "__main__":
     user_input = "帮我导出上个月的销售报表"
-    state = AgentState(user_input=user_input)  # 用 AgentState 初始化
-    result = app.invoke(state)
-    print(result["message"])
-    # show_workflow_pic(workflow)
+    # state = AgentState(user_input=user_input)  # 用 AgentState 初始化
+    # result = app.invoke(state)
+    # print(result["message"])
+    show_workflow_pic(workflow)
