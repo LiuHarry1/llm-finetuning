@@ -33,7 +33,7 @@ graph_builder.add_node("node_start", node_start)
 graph_builder.add_node("nodeA", nodeA)
 graph_builder.add_node("nodeB", nodeB)
 graph_builder.add_node("merge_node", merge_node)
-graph_builder.add_sequence()
+
 
 # 设置入口和出口
 graph_builder.set_entry_point("node_start")
@@ -53,6 +53,11 @@ app = graph_builder.compile()
 # 运行
 result = app.invoke({"input": "初始输入"})
 print("\n最终结果：", result)
+
+
+# stream：逐步打印中间结果
+for step in app.stream({"input": "初始输入"}):
+    print("流式输出：", step)
 
 # 打印图结构
 print(app.get_graph().draw_ascii())
