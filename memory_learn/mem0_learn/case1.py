@@ -4,6 +4,9 @@ from mem0.configs.base import MemoryConfig
 from mem0.embeddings.configs import EmbedderConfig
 from mem0.llms.configs import LlmConfig
 
+"""
+https://zhuanlan.zhihu.com/p/1908242232361870846
+"""
 # 配置 LLM 客户端（以 OpenAI 为例）
 from openai import OpenAI
 
