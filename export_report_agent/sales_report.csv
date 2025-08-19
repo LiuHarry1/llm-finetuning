@@ -1,0 +1,4 @@
+order_id,date,customer,amount,status
+SO-1001,2025-07-01,Alice,1200.5,paid
+SO-1002,2025-07-02,Bob,850.0,pending
+SO-1003,2025-07-05,Charlie,450.75,paid

@@ -1,0 +1,15 @@
+// Report Agent Workflow
+digraph {
+	workflow_decision
+	parse_request
+	fetch_report
+	export_report
+	finish
+	parse_request -> workflow_decision
+	__start__ -> parse_request
+	finish -> __end__
+	workflow_decision -> __end__
+	export_report -> finish
+	workflow_decision -> fetch_report
+	fetch_report -> export_report
+}
