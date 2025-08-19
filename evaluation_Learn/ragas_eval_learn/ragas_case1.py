@@ -60,11 +60,40 @@ def evaluate_on_dataset():
     print(results)
     print(results.to_pandas())
 
+class RAG:
+    def __init__(self):
+        self.documents = []
+
+    def load_documents(self, docs):
+        """加载文档到 RAG 实例"""
+        self.documents = docs
+
+    def get_most_relevant_docs(self, query):
+        """
+        简单 mock 方式：根据关键词匹配返回最相关的文档
+        这里直接用最简单的字符串包含判断
+        """
+        for doc in self.documents:
+            for word in query.split():
+                if word.lower() in doc.lower():
+                    return [doc]  # 返回列表形式
+        # 如果没匹配到，返回第一个文档
+        return [self.documents[0]]
+
+    def generate_answer(self, query, retrieved_docs):
+        """
+        简单 mock 生成答案：直接返回检索到的文档
+        实际可调用 llm 来生成答案
+        """
+        # 这里假设 retrieved_docs 永远只有一个文档
+        if retrieved_docs:
+            return retrieved_docs[0]
+        return "No answer found."
+
 def rag_evaluation():
-    from langchain_openai import ChatOpenAI
-    from langchain_openai import OpenAIEmbeddings
-    llm = ChatOpenAI(model="gpt-4o")
-    embeddings = OpenAIEmbeddings()
+
+    llm = ChatTongyi(model="qwen-plus", api_key="sk-f256c03643e9491fb1ebc278dd958c2d")
+
 
     sample_docs = [
         "Albert Einstein proposed the theory of relativity, which transformed our understanding of time, space, and gravity.",
@@ -128,7 +157,7 @@ def rag_evaluation():
     from ragas.llms import LangchainLLMWrapper
 
     evaluator_llm = LangchainLLMWrapper(llm)
-    from ragas.metrics import LLMContextRecall, Faithfulness, FactualCorrectness, AnswerCorrectness
+    from ragas.metrics import LLMContextRecall, Faithfulness, FactualCorrectness, AnswerCorrectness, ContextRecall
 
     result = evaluate(dataset=evaluation_dataset, metrics=[LLMContextRecall(), Faithfulness(), FactualCorrectness()],
                       llm=evaluator_llm)
@@ -141,3 +170,4 @@ if __name__ == '__main__':
     # bleu_score()
     # asyncio.run(AspectCritic_test())
     evaluate_on_dataset()
+    # rag_evaluation()
