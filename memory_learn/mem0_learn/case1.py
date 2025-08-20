@@ -13,30 +13,15 @@ from openai import OpenAI
 from langchain_community.chat_models import ChatTongyi
 from langchain_community.embeddings import DashScopeEmbeddings
 
-llm = ChatTongyi(
-    model="qwen-plus",
-    api_key="sk-f256c03643e9491fb1ebc278dd958c2d"
+llm = ChatTongyi(model="qwen-plus", api_key="sk-f256c03643e9491fb1ebc278dd958c2d"
 )
 
-embeder = DashScopeEmbeddings(model="text-embedding-v2",
-                              dashscope_api_key = "sk-f256c03643e9491fb1ebc278dd958c2d"
-)
+embeder = DashScopeEmbeddings(model="text-embedding-v2", dashscope_api_key = "sk-f256c03643e9491fb1ebc278dd958c2d")
 
 # 1. 配置 Memory
-config = MemoryConfig(
-    llm = LlmConfig(
-        provider="langchain",
-        config={
-            "model":llm
-
-        },
-    ),
-    embedder = EmbedderConfig( provider = "langchain",
-                config= {
-                "model":embeder}
-            )
+config = MemoryConfig( llm = LlmConfig( provider="langchain", config={"model":llm }, ),
+    embedder = EmbedderConfig( provider = "langchain", config= { "model":embeder} )
 )
-
 
 # 2. 初始化 Memory
 memory = Memory(config =config )
