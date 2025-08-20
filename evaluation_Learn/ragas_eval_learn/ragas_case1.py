@@ -17,6 +17,21 @@ def bleu_score():
     result = metric.single_turn_score(test_data)
     print(result)
 
+
+def rouge_score():
+    from ragas.dataset_schema import SingleTurnSample
+    from ragas.metrics import RougeScore
+
+    sample = SingleTurnSample(
+        response="The Eiffel Tower is located in India.",
+        reference="The Eiffel Tower is located in Paris."
+    )
+
+    scorer = RougeScore()
+    await scorer.single_turn_ascore(sample)
+
+
+
 async def AspectCritic_test():
     import os
     from ragas.llms import LangchainLLMWrapper
