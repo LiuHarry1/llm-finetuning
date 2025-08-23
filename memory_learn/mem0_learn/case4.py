@@ -16,8 +16,8 @@ llm = ChatTongyi(model="qwen-plus", api_key="sk-f256c03643e9491fb1ebc278dd958c2d
 embeder = DashScopeEmbeddings(model="text-embedding-v2", dashscope_api_key = "sk-f256c03643e9491fb1ebc278dd958c2d")
 
 # 1. 配置 Memory
-config = MemoryConfig( llm = LlmConfig( provider="langchain", config={"model":llm }, ),
-    embedder = EmbedderConfig( provider = "langchain", config= { "model":embeder} ),
+config = MemoryConfig( llm = LlmConfig( provider="langchain_learn", config={"model":llm }, ),
+    embedder = EmbedderConfig( provider = "langchain_learn", config= { "model":embeder} ),
     vector_store = VectorStoreConfig(provider = "qdrant",
                                      config={
                                          "host": "localhost",

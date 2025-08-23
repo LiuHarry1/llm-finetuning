@@ -118,8 +118,8 @@ def auto_graph_search(user_id, query_text):
 # ======================
 if __name__ == "__main__":
     # 定义两个用户：human user 和 bot
-    user_id = "harry_user"
-    bot_id = "ai_bot"
+    user_id = "harry_user1"
+    bot_id = "ai_bot1"
 
     # 创建用户
     # add_user(user_id, "harry@example.com", "Harry", "Liu")
@@ -131,16 +131,16 @@ if __name__ == "__main__":
     # thread_id = create_thread(user_id)
     #
     # # 模拟一次对话
-    # user_msg = "Hi, my name is Harry. I love watching movies and learning Python."
-    # bot_msg = "Nice to meet you Harry! 🎬🐍 Movies and Python are both great choices!"
+    # user_msg = "hi, I am harry, I love eating noodles."
+    # bot_msg = "Hi Harry! 🍜 Nice to meet you. What kind of noodles do you like the most—ramen, pasta, stir-fry, or something else?"
     # add_memory(user_id, bot_id, thread_id, user_msg, bot_msg)
     #
     # # 再来一次对话
-    # user_msg2 = "I want to learn Python basics, please teach me."
-    # bot_msg2 = "Sure! Let's start with printing text:\n```python\nprint('Hello, Harry!')\n```"
+    # user_msg2 = "noodles is not favourate any more . I think rice is better now"
+    # bot_msg2 = "Got it—so rice has taken the crown! 🍚 Do you prefer it plain, fried, or with curry/sauce?"
     # add_memory(user_id, bot_id, thread_id, user_msg2, bot_msg2)
 
-    thread_id = "b4cfdfa942f34c768e2b4348c31d32d9"
+    thread_id = "af9b84ce69064f7ea4d83014c249cb15"
 
     # 获取用户记忆摘要
     # get_user_context(thread_id, "summary")
