@@ -112,15 +112,16 @@ def get_facts(user_id, center_node_uuid):
 
 if __name__ == '__main__':
     # user_id = "hl77319"
-    user_id = "user_123"
-    # add_user(user_id)
+    # user_id = "user_123"
+    user_id = "ai bot"
+    add_user(user_id)
     # update_user(user_id)
     # delete_user(user_id)
-    # get_user(user_id)
+    get_user(user_id)
     # get_threads(user_id)
     # list_users()
     # get_user_node(user_id)
     # find_node_by_graph(user_id)
     # search_in_graph(user_id, "harry")
     # get_facts(user_id, "d42ae90c-ecd2-4940-9377-f98c22ffe985")
-    get_relevant_fact(user_id,"harry", "d42ae90c-ecd2-4940-9377-f98c22ffe985" )
+    # get_relevant_fact(user_id,"harry", "d42ae90c-ecd2-4940-9377-f98c22ffe985" )
