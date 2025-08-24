@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from typing_extensions import TypedDict
 from langchain_community.chat_models import ChatTongyi
 import os
-from langchain_core.messages import AIMessage, SystemMessage, trim_messages
+from langchain_core.messages import AIMessage, SystemMessage, trim_messages, HumanMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph, add_messages
@@ -24,7 +24,7 @@ class State(TypedDict):
 
 
 @tool
-async def search_facts(state: State, query: str, limit: int = 5) -> list[str]:
+def search_facts(state: State, query: str, limit: int = 5) -> list[str]:
     """Search for facts in all conversations had with a user.
 
     Args:
@@ -36,9 +36,11 @@ async def search_facts(state: State, query: str, limit: int = 5) -> list[str]:
         list: A list of facts that match the search query.
     """
     print("starting to call search facts method", state)
-    edges = zep.graph.search(
-        user_id=state["user_name"], text=query, limit=limit, search_scope="edges"
+    search_result = zep.graph.search(
+        user_id=state["user_name"], query=query, limit=limit, scope="edges"
     )
+    edges =  search_result.edges
+
     return [edge.fact for edge in edges]
 
 
@@ -55,9 +57,10 @@ async def search_nodes(state: State, query: str, limit: int = 5) -> list[str]:
         list: A list of node summaries for nodes that match the search query.
     """
     print("starting to call search node method", state)
-    nodes = zep.graph.search(
-        user_id=state["user_name"], text=query, limit=limit, search_scope="nodes"
+    search_result = zep.graph.search(
+        user_id=state["user_name"], query=query, limit=limit, scope="nodes"
     )
+    nodes = search_result.nodes
     return [node.summary for node in nodes]
 
 load_dotenv(override=True)
@@ -67,6 +70,10 @@ zep = Zep(api_key=ZEP_API_KEY)
 TONGYI_API_KEY = os.getenv("TONGYI_API_KEY")
 
 llm = ChatTongyi( model="qwen-plus", api_key=TONGYI_API_KEY)
+
+tools = [search_facts, search_nodes]
+tool_node = ToolNode(tools)
+# llm = llm.bind_tools(tools)
 
 async def chatbot(state: State):
     memory = zep.thread.get_user_context(state["thread_id"])
@@ -79,21 +86,28 @@ async def chatbot(state: State):
 
     messages = [system_message] + state["messages"]
     response = await llm.ainvoke(messages)
+    if not response.tool_calls:
+        # Add the new chat turn to the Zep graph
+        messages_to_save = []
+        for message in messages:
+            if isinstance(message, HumanMessage):
+                messages_to_save.append(Message(  role="user", name=state["user_name"], content=message.content,),)
 
-    # Add the new chat turn to the Zep graph
-    messages_to_save = [
-        Message(  role="user", name=state["first_name"] + " " + state["last_name"], content=state["messages"][-1].content,),
-        Message(role="assistant", content=response.content),
-    ]
+        messages_to_save.append(Message(role="assistant", content=response.content))
 
-    zep.thread.add_messages( thread_id=state["thread_id"],  messages=messages_to_save,)
+        zep.thread.add_messages( thread_id=state["thread_id"],  messages=messages_to_save,)
 
-    # Truncate the chat history to keep the state from growing unbounded
-    # In this example, we going to keep the state small for demonstration purposes
-    # We'll use Zep's Facts to maintain conversation context
-    state["messages"] = trim_messages( state["messages"], strategy="last",  token_counter=len,
-        max_tokens=3, start_on="human", end_on=("human", "tool"),   include_system=True,)
-
+        # Truncate the chat history to keep the state from growing unbounded
+        # In this example, we going to keep the state small for demonstration purposes
+        # We'll use Zep's Facts to maintain conversation context
+        state["messages"] = trim_messages( state["messages"], strategy="last",  token_counter=len,
+            max_tokens=3, start_on="human", end_on=("human", "tool"),   include_system=True,)
+    else:
+        for tool_call in response.tool_calls:
+            tool_call["args"]["state"]["first_name"] = state["first_name"]
+            tool_call["args"]["state"]["last_name"] = state["last_name"]
+            tool_call["args"]["state"]["user_name"] = state["user_name"]
+            tool_call["args"]["state"]["thread_id"] = state["thread_id"]
 
     return {"messages": [response]}
 
@@ -110,9 +124,7 @@ async def should_continue(state, config):
         return "continue"
 
 
-tools = [search_facts, search_nodes]
-tool_node = ToolNode(tools)
-llm_with_tools = llm.bind_tools(tools)
+
 
 graph_builder = StateGraph(State)
 
@@ -149,13 +161,14 @@ def extract_messages(result):
         output += f"{name}: {message.content}\n"
     return output.strip()
 
-async def graph_invoke(message: str, first_name: str, last_name: str, thread_id: str, ai_response_only: bool = True,):
+async def graph_invoke(message: str, first_name: str, last_name: str, user_name:str, thread_id: str, ai_response_only: bool = True,):
 
     r = await graph.ainvoke(
         {
             "messages": [  {  "role": "user", "content": message, }  ],
             "first_name": first_name,
             "last_name": last_name,
+            "user_name":user_name,
             "thread_id": thread_id,
         },
         config={"configurable": {"thread_id": thread_id}},
@@ -166,10 +179,9 @@ async def graph_invoke(message: str, first_name: str, last_name: str, thread_id:
     else:
         return extract_messages(r)
 
-
-if __name__ == '__main__':
-    first_name, last_name, user_name, thread_id = get_user_thread()
-    # first_name, last_name, user_name, thread_id = "Harry","Liu", "Harry2dfc", "25f570725f6a4233ad8942d9d1c6cc79"
+def chatbot():
+    # first_name, last_name, user_name, thread_id = get_user_thread()
+    first_name, last_name, user_name, thread_id = "Harry", "Liu", "Harry2dfc", "25f570725f6a4233ad8942d9d1c6cc79"
     while True:
         try:
             user_input = input("🧑 User: ")
@@ -177,11 +189,17 @@ if __name__ == '__main__':
                 print("Goodbye!")
                 break
             # print("user input", user_input)
-            response = asyncio.run(graph_invoke( user_input, first_name,   last_name,  thread_id, ))
+            response = asyncio.run(graph_invoke(user_input, first_name, last_name, user_name, thread_id, ))
             print(f"🤖 Assistant: {response}")
         except Exception as e:
 
             print("发生错误:")
             traceback.print_exc()
             break
+if __name__ == '__main__':
+    chatbot()
+    # state = State()
+    # state["user_name"] = "Harry2dfc"
+    # result = search_facts(state, "what were we talking before")
+    # print(result)
 
