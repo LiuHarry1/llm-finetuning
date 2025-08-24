@@ -1,13 +1,18 @@
 import os
 
+from dotenv import load_dotenv
 from zep_cloud.client import AsyncZep
 
 from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
+from langchain_community.chat_models import ChatTongyi
+load_dotenv(override=True)
+ZEP_API_KEY = os.getenv("ZEP_API_KEY")
 
-zep = AsyncZep(api_key=os.environ.get('ZEP_API_KEY'))
+llm = ChatTongyi(model="qwen-plus", api_key="sk-f256c03643e9491fb1ebc278dd958c2d",  temperature=0)
+
+zep = AsyncZep(api_key=ZEP_API_KEY)
 
 
 @tool
@@ -32,4 +37,7 @@ async def search_facts(state: MessagesState, query: str, limit: int = 5):
 
 tools = [search_facts]
 tool_node = ToolNode(tools)
-llm = ChatOpenAI(model='gpt-4o-mini', temperature=0).bind_tools(tools)
+
+llm = llm.bind_tools(tools)
+
+

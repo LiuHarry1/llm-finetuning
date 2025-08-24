@@ -78,11 +78,13 @@ def search_in_graph(user_id, query_text, center_node_uuid=None):
     else:
         results = client.graph.search(
             user_id=user_id,
-            query=query_text
+            query=query_text,
+            scope="episodes"
         )
 
     relevant_nodes = results.nodes
     relevant_edges = results.edges
+    relevant_episodes = results.episodes
 
     print("=== 节点 ===")
     if relevant_nodes:
@@ -94,6 +96,10 @@ def search_in_graph(user_id, query_text, center_node_uuid=None):
         for edge in relevant_edges:
             print(edge.fact)
 
+    print("====情节记忆===")
+    if relevant_episodes:
+        for episode in relevant_episodes:
+            print(episode)
 
 def auto_graph_search(user_id, query_text):
     client = Zep(api_key=ZEP_API_KEY)

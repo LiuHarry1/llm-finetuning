@@ -1,3 +1,4 @@
+import traceback
 from typing import Annotated
 
 from langchain_tavily import TavilySearch
@@ -52,10 +53,10 @@ def stream_graph_updates(user_input: str):
     last_msg = None
     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]},
                               config, stream_mode="values"):
-        for value in event.values():
-            msg = value["messages"][-1]
-            # print(msg)
+        for value in event.values():  # 这里的 value 实际是 list
+            msg = value[-1]  # 直接取最后一条消息
             last_msg = msg.content
+
     if last_msg:
         print(f"🤖 Assistant: {last_msg}")
 
@@ -67,7 +68,11 @@ while True:
             break
 
         stream_graph_updates(user_input)
-    except:
+    except Exception as e:
+
+        print("发生错误:")
+        traceback.print_exc()
+
         # fallback if input() is not available
         user_input = "What do you know about LangGraph?"
         print("User: " + user_input)
