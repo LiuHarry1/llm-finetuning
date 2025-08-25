@@ -12,6 +12,7 @@ from mem0.llms.configs import LlmConfig
 from mem0.vector_stores.configs import VectorStoreConfig
 
 # https://blog.futuresmart.ai/integrating-mem0-with-langchain
+# https://docs.mem0.ai/integrations/langchain
 
 custom_prompt = """
 Please only extract entities containing patient health information, appointment details, and user information. 
