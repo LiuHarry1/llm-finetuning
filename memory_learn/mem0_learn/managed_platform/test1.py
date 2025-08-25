@@ -14,13 +14,46 @@ MEM0_API_KEY = os.getenv("MEM0_API_KEY")
 
 client = MemoryClient(api_key=MEM0_API_KEY)
 
-def add_messages():
+def add_messages_agent():
     messages = [
-        { "role": "user", "content": "Hi, I'm Alex. I'm a vegetarian and I'm allergic to nuts." },
-        { "role": "assistant", "content": "Hello Alex! I see that you're a vegetarian with a nut allergy." }
+        {"role": "user", "content": "I'm travelling to San Francisco"},
+        {"role": "assistant", "content": "That's great! I'm going to Dubai next month."},
     ]
 
-    client.add(messages, user_id="alex")
+    client.add(messages=messages, user_id="user1", agent_id="agent1")
+
+def add_messages():
+    # messages = [
+    #     { "role": "user", "content": "Hi, I'm Alex. I'm a vegetarian and I'm allergic to nuts." },
+    #     { "role": "assistant", "content": "Hello Alex! I see that you're a vegetarian with a nut allergy." }
+    # ]
+    #
+    # client.add(messages, user_id="alex")
+
+    # lesson_messages = [
+    #     {"role": "user", "content": "Can you explain algorithms?"},
+    #     {"role": "assistant", "content": "Sure! I'll explain algorithms with math-friendly examples."}
+    # ]
+
+    lesson_messages = [
+        {"role": "user", "content": "Hi, my name is Alice."},
+        {"role": "assistant", "content": "Hi Alice, what sports do you like to play?"},
+        {"role": "user", "content": "I love playing badminton, football, and basketball. I'm quite athletic!"},
+        {"role": "assistant",
+         "content": "That's great! Alice seems to enjoy both individual sports like badminton and team sports like football and basketball."},
+        {"role": "user", "content": "Sometimes, I also draw and sketch in my free time."},
+        {"role": "assistant", "content": "That's cool! I'm sure you're good at it."}
+    ]
+
+
+
+
+    client.add(lesson_messages,
+               user_id="alex",
+               run_id="algorithms-lesson-2",
+               version="v2"
+               )
+
     # client.add(messages, user_id="alex", async_mode=True)
 
 def search_in_memory():
@@ -36,6 +69,9 @@ def search_in_memory():
 
     result = client.search(query, version="v2", filters=filters, keyword_search=True)
     print(result)
+
+    # result = client.history("ed09c287-b438-43b1-b2f6-835b61f864ad")
+    # print(result)
 
     # results = client.search(
     #     "food preferences",
@@ -62,9 +98,29 @@ def search_in_memory():
     
     """
 
+def get_summary(user_id = "alex"):
+    query = "What can I cook for dinner tonight?"
+
+    filters = {
+        "OR": [
+            {
+                "user_id": user_id
+            }
+        ]
+    }
+
+    result = client.get_summary( filters=filters)
+    # client.history
+    print(result)
+
 def get_all_facts(user_id = "alex"):
 
-    memories = client.get_all(user_id="alex")
+    memories = client.get_all(user_id=user_id)
+
+    # Review if the right information was extracted
+    for memory in memories:
+        print(f"Extracted: {memory['memory']}, created_at: {memory['created_at']}, updated_at {memory['updated_at']}, expiration_date: {memory['expiration_date']}")
+
     print(memories)
 
 """
@@ -93,5 +149,9 @@ def add_message_for_agent(messages, agent_id="support-bot"):
     client.add(messages, agent_id="support-bot")
 
 if __name__ == '__main__':
-    search_in_memory()
+    # add_messages_agent()
+    # add_messages()
+    # search_in_memory()
+    # get_all_facts()
+    get_summary("user1")
     # get_all_facts()
