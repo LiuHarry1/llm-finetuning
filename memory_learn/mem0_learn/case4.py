@@ -7,8 +7,11 @@ from langchain_community.embeddings import DashScopeEmbeddings
 from mem0.configs.base import MemoryConfig
 from mem0.configs.vector_stores.qdrant import QdrantConfig
 from mem0.embeddings.configs import EmbedderConfig
+from mem0.graphs.configs import GraphStoreConfig
 from mem0.llms.configs import LlmConfig
 from mem0.vector_stores.configs import VectorStoreConfig
+
+#https://docs.mem0.ai/open-source/graph_memory/overview
 
 llm = ChatTongyi(model="qwen-plus", api_key="sk-f256c03643e9491fb1ebc278dd958c2d"
 )
@@ -27,7 +30,16 @@ config = MemoryConfig( llm = LlmConfig( provider="langchain_learn", config={"mod
                                      }
                                      ),
 
-                )
+    graph_store=  GraphStoreConfig(provider = "neo4j",
+                                       config= {
+                                        "url": "bolt://localhost:7687",
+                                        "username": "neo4j",
+                                        "password": "myhome1234"
+
+                                        }
+                ),
+
+    )
 
 m = Memory(config=config)
 

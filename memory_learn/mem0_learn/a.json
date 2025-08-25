@@ -1,0 +1,9 @@
+{'results': [
+  {'id': '01110b97-999e-498d-9128-241532bc7e91', 'memory': 'Love sci-fi movies',
+    'hash': '65ef203273b0fa207b3134c45a097349', 'metadata': {'category': 'movie_recommendations'},
+    'created_at': '2025-08-20T00:03:50.522102-07:00', 'updated_at': None, 'user_id': 'alice'},
+
+  {'id': '0448e86f-3399-4876-bf0f-a0eee0a9961f', 'memory': 'Love sci-fi movies',
+    'hash': '65ef203273b0fa207b3134c45a097349', 'metadata': {'category': 'movie_recommendations'},
+    'created_at': '2025-08-20T00:04:01.534337-07:00', 'updated_at': None, 'user_id': 'alice',
+    'agent_id': 'movie-assistant', 'run_id': 'session-001'}]}
