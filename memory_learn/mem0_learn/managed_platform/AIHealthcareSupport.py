@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from dotenv import load_dotenv
 from langchain_community.chat_models import ChatTongyi
@@ -13,6 +14,10 @@ from mem0.vector_stores.configs import VectorStoreConfig
 
 # https://blog.futuresmart.ai/integrating-mem0-with-langchain
 # https://docs.mem0.ai/integrations/langchain
+#docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+
+# docker run --name neo4j  -p7474:7474 -p7687:7687 -d  -e NEO4J_AUTH=neo4j/myhome1234  neo4j:latest
+
 
 custom_prompt = """
 Please only extract entities containing patient health information, appointment details, and user information. 
@@ -36,11 +41,38 @@ Output: {{"facts" : ["Patient has diabetes", "Reports high blood sugar"]}}
 Return the facts and patient information in a json format as shown above.
 """
 
+custom_prompt = """
+You are an information extraction system. 
+Your ONLY task is to return valid JSON with the key "facts".
 
-llm = ChatTongyi(model="qwen-plus", api_key="sk-f256c03643e9491fb1ebc278dd958c2d"
-)
+- Never include explanations or extra text.
+- Never include greetings or natural language.
+- Always return valid JSON. No Markdown. No commentary.
 
-embeder = DashScopeEmbeddings(model="text-embedding-v2", dashscope_api_key = "sk-f256c03643e9491fb1ebc278dd958c2d")
+Examples:
+
+Input: Hi.
+Output: {"facts": []}
+
+Input: The weather is nice today.
+Output: {"facts": []}
+
+Input: I have a headache and would like to schedule an appointment.
+Output: {"facts": ["Patient reports headache", "Wants to schedule an appointment"]}
+
+Input: My name is Jane Smith, and I need to reschedule my appointment for next Tuesday.
+Output: {"facts": ["Patient name: Jane Smith", "Wants to reschedule appointment", "Original appointment: next Tuesday"]}
+
+Input: I have diabetes and my blood sugar is high.
+Output: {"facts": ["Patient has diabetes", "Reports high blood sugar"]}
+"""
+
+
+load_dotenv()
+TONGYI_API_KEY = os.getenv("TONGYI_API_KEY")
+
+llm = ChatTongyi(model="qwen-plus", api_key=TONGYI_API_KEY)
+embeder = DashScopeEmbeddings(model="text-embedding-v2", dashscope_api_key = TONGYI_API_KEY)
 
 # 1. 配置 Memory
 config = MemoryConfig( llm = LlmConfig( provider="langchain", config={"model":llm }, ),
@@ -53,7 +85,7 @@ config = MemoryConfig( llm = LlmConfig( provider="langchain", config={"model":ll
                                          "embedding_model_dims": 1536,
                                      }
                                      ),
-    custom_fact_extraction_prompt = custom_prompt
+    custom_fact_extraction_prompt = custom_prompt,
 
     # graph_store=  GraphStoreConfig(provider = "neo4j",
     #                                    config= {
@@ -66,44 +98,23 @@ config = MemoryConfig( llm = LlmConfig( provider="langchain", config={"model":ll
 
     )
 
-load_dotenv()
-MEM0_API_KEY = os.getenv("MEM0_API_KEY")
 
 class AIHealthcareSupport:
-    def __init__(self, config):
-        """
-        Initialize the AI Healthcare Support with Memory Configuration and Langchain OpenAI Chat Model.
-
-        :param config: Configuration for memory and model settings.
-        """
-
-
-
-
-        # self.memory = MemoryClient(api_key=MEM0_API_KEY)
+    def __init__(self, config, max_context_facts=5):
         self.memory  = Memory(config=config)
-        # self.memory = Memory.from_config(config)
         self.app_id = "app-1"
-        self.model = llm
+        self.model = llm,
+        self.max_context_facts = max_context_facts  # 控制上下文条数
 
     def ask(self, question, user_id=None):
-        """
-        Ask a question to the AI and store the relevant facts in memory.
-
-        :param question: The question to ask the AI.
-        :param user_id: Optional user ID to associate with the memory.
-        :return: Response from the AI along with the original question.
-        """
-        # Retrieve relevant memories using the search_memory method
         memories = self.search_memory(question, user_id=user_id)
+        context = self.convert_to_facts(memories['results'], self.max_context_facts)
 
-        context = "Relevant information from previous conversations:\n"
-        if memories['results']:
-            for memory in memories['results']:
-                context += f" - {memory['memory']}\n"
-
+        print("context:",context)
         messages = [
-            SystemMessage(content=f"""You are a helpful healthcare support assistant. Use the provided context to personalize your responses and remember user health information and past interactions. {context}"""),
+            SystemMessage(content=f"""You are a helpful healthcare support assistant. 
+            Use the provided context to personalize your responses and remember user health information 
+            and past interactions. {context}"""),
             HumanMessage(content=question)
         ]
 
@@ -114,41 +125,62 @@ class AIHealthcareSupport:
         return {"messages": [response.content]}
 
     def add_memory(self, question, response, user_id=None):
-        """
-        Add a memory entry to the memory store.
+        # messages = [
+        #     {"role": "user", "content": question},
+        #     {"role": "assistant", "content": response},
+        # ]
+        # self.memory.add(messages, user_id=user_id, metadata={"app_id": self.app_id})
 
-        :param question: The question that was asked by the user.
-        :param response: The response generated by the AI.
-        :param user_id: Optional user ID to associate with the memory.
-        """
-        self.memory.add(f"User: {question}\nAssistant: {response}", user_id=user_id, metadata={"app_id": self.app_id})
+        conversation = f"User: {question}\nAssistant: {response}"
+
+        # 存入 mem0
+        self.memory.add(conversation, user_id=user_id, metadata={"app_id": self.app_id})
 
     def get_memories(self, user_id=None):
-        """
-        Retrieve all memories associated with the given user ID.
-
-        :param user_id: Optional user ID to filter memories.
-        :return: List of memories.
-        """
         return self.memory.get_all(user_id=user_id)
 
     def search_memory(self, query, user_id=None):
-        """
-        Search for memories related to the given query and user ID.
-
-        :param query: The query to search for in the memories.
-        :param user_id: Optional user ID to filter memories.
-        :return: List of relevant memories.
-        """
         related_memories = self.memory.search(query, user_id=user_id)
         return related_memories
 
+    def convert_to_facts(self, memories, top_k=10):
 
-if __name__ == '__main__':
+        """
+        将 memory 转成 LLM 可以使用的结构化上下文，
+        只取 top_k 条最新/最相关的记忆
+        """
+        if not memories:
+            return ""
+        output_lines = [
+            "# These are the most relevant facts and their valid date ranges",
+            "# format: FACT (Date range: from - to)",
+            "<FACTS>"
+        ]
+
+        # 按时间排序（updated_at > created_at）从最新到最旧
+        sorted_memories = sorted(
+            memories,
+            key=lambda m: m.get('updated_at') or m.get('created_at') or "",
+            reverse=True
+        )
+
+        for memory in sorted_memories[:top_k]:
+            content = memory.get('memory', '')
+            created_at = memory.get('created_at')
+            if memory.get('updated_at'):
+                created_at = memory.get('updated_at')
+            expiration_date = memory.get('expiration_date') or "present"
+            time_range = f"({created_at} - {expiration_date})" if created_at else "(unknown date range)"
+            output_lines.append(f"  - {content} {time_range}")
+
+        output_lines.append("</FACTS>")
+        return "\n".join(output_lines)
+
+def test1():
     # Initialize the AIHealthcareSupport bot
     ai_support = AIHealthcareSupport(config)
     # User ID for interaction
-    user_id = "James"
+    user_id = "Harry"
 
     # Interacting with the bot
     print("Interacting with AI Healthcare Support:\n")
@@ -171,4 +203,35 @@ if __name__ == '__main__':
     print("All Memories:")
     for memory in memories['results']:
         print(f"- {memory}")
+
+def chatbot():
+    user_id, thread_id = "Harry", "25f570725f6a4233ad8942d9d1c6cc79"
+
+    ai_support = AIHealthcareSupport(config)
+    while True:
+        try:
+            user_input = input("🧑 User: ")
+            if user_input.lower() in ["quit", "exit", "q"]:
+                print("Goodbye!")
+                break
+            # print("user input", user_input)
+            response = ai_support.ask(user_input, user_id)
+            print(f"🤖 Assistant: {response['messages'][0]}")
+        except Exception as e:
+
+            print("发生错误:")
+            traceback.print_exc()
+            break
+
+
+
+if __name__ == '__main__':
+
+    # test1()
+    chatbot()
+    # memory = Memory(config=config)
+    # memories = memory.search("I have a family history of diabetes; how can I reduce my risk?", user_id="Harry")
+    # aIHealthcareSupport  = AIHealthcareSupport(config)
+    # context = aIHealthcareSupport.convert_to_facts(memories['results'])
+    # print(context)
 

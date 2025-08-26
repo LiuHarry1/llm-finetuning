@@ -2,6 +2,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, SearchRequest, Filter, FieldCondition, MatchValue
 import numpy as np
 
+#docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+
 
 def modern_qdrant_example():
     # 连接到 Qdrant
