@@ -14,6 +14,10 @@ from mem0.vector_stores.configs import VectorStoreConfig
 
 # https://blog.futuresmart.ai/integrating-mem0-with-langchain
 # https://docs.mem0.ai/integrations/langchain
+#docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+
+# docker run --name neo4j  -p7474:7474 -p7687:7687 -d  -e NEO4J_AUTH=neo4j/myhome1234  neo4j:latest
+
 
 custom_prompt = """
 Please only extract entities containing patient health information, appointment details, and user information. 
@@ -37,6 +41,33 @@ Output: {{"facts" : ["Patient has diabetes", "Reports high blood sugar"]}}
 Return the facts and patient information in a json format as shown above.
 """
 
+custom_prompt = """
+You are an information extraction system. 
+Your ONLY task is to return valid JSON with the key "facts".
+
+- Never include explanations or extra text.
+- Never include greetings or natural language.
+- Always return valid JSON. No Markdown. No commentary.
+
+Examples:
+
+Input: Hi.
+Output: {"facts": []}
+
+Input: The weather is nice today.
+Output: {"facts": []}
+
+Input: I have a headache and would like to schedule an appointment.
+Output: {"facts": ["Patient reports headache", "Wants to schedule an appointment"]}
+
+Input: My name is Jane Smith, and I need to reschedule my appointment for next Tuesday.
+Output: {"facts": ["Patient name: Jane Smith", "Wants to reschedule appointment", "Original appointment: next Tuesday"]}
+
+Input: I have diabetes and my blood sugar is high.
+Output: {"facts": ["Patient has diabetes", "Reports high blood sugar"]}
+"""
+
+
 load_dotenv()
 TONGYI_API_KEY = os.getenv("TONGYI_API_KEY")
 
@@ -54,7 +85,7 @@ config = MemoryConfig( llm = LlmConfig( provider="langchain", config={"model":ll
                                          "embedding_model_dims": 1536,
                                      }
                                      ),
-    custom_fact_extraction_prompt = custom_prompt
+    custom_fact_extraction_prompt = custom_prompt,
 
     # graph_store=  GraphStoreConfig(provider = "neo4j",
     #                                    config= {
@@ -69,14 +100,15 @@ config = MemoryConfig( llm = LlmConfig( provider="langchain", config={"model":ll
 
 
 class AIHealthcareSupport:
-    def __init__(self, config):
+    def __init__(self, config, max_context_facts=5):
         self.memory  = Memory(config=config)
         self.app_id = "app-1"
-        self.model = llm
+        self.model = llm,
+        self.max_context_facts = max_context_facts  # 控制上下文条数
 
     def ask(self, question, user_id=None):
         memories = self.search_memory(question, user_id=user_id)
-        context = self.convert_to_facts(memories['results'])
+        context = self.convert_to_facts(memories['results'], self.max_context_facts)
 
         print("context:",context)
         messages = [
@@ -93,11 +125,16 @@ class AIHealthcareSupport:
         return {"messages": [response.content]}
 
     def add_memory(self, question, response, user_id=None):
-        messages = [
-            {"role": "user", "content": question},
-            {"role": "assistant", "content": response},
-        ]
-        self.memory.add(messages, user_id=user_id, metadata={"app_id": self.app_id})
+        # messages = [
+        #     {"role": "user", "content": question},
+        #     {"role": "assistant", "content": response},
+        # ]
+        # self.memory.add(messages, user_id=user_id, metadata={"app_id": self.app_id})
+
+        conversation = f"User: {question}\nAssistant: {response}"
+
+        # 存入 mem0
+        self.memory.add(conversation, user_id=user_id, metadata={"app_id": self.app_id})
 
     def get_memories(self, user_id=None):
         return self.memory.get_all(user_id=user_id)
@@ -106,35 +143,37 @@ class AIHealthcareSupport:
         related_memories = self.memory.search(query, user_id=user_id)
         return related_memories
 
-    def convert_to_facts(self, memories):
+    def convert_to_facts(self, memories, top_k=10):
 
+        """
+        将 memory 转成 LLM 可以使用的结构化上下文，
+        只取 top_k 条最新/最相关的记忆
+        """
         if not memories:
             return ""
-        output_lines = []
-        output_lines.append("# These are the most relevant facts and their valid date ranges")
-        output_lines.append("# format: FACT (Date range: from - to)")
-        output_lines.append("<FACTS>")
+        output_lines = [
+            "# These are the most relevant facts and their valid date ranges",
+            "# format: FACT (Date range: from - to)",
+            "<FACTS>"
+        ]
 
-        # 添加每个记忆项
-        for memory in memories:
+        # 按时间排序（updated_at > created_at）从最新到最旧
+        sorted_memories = sorted(
+            memories,
+            key=lambda m: m.get('updated_at') or m.get('created_at') or "",
+            reverse=True
+        )
+
+        for memory in sorted_memories[:top_k]:
             content = memory.get('memory', '')
             created_at = memory.get('created_at')
-            if memory.get('updated_at') and memory.get('updated_at')!=None:
+            if memory.get('updated_at'):
                 created_at = memory.get('updated_at')
-            expiration_date = "present"
-            if memory.get("expiration_date") and memory.get("expiration_date") != None:
-                expiration_date = memory.get("expiration_date")
-
-            # 格式化时间范围
-            if created_at:
-                time_range = f"({created_at} - {expiration_date})"
-            else:
-                time_range = "(unknown date range)"
-
+            expiration_date = memory.get('expiration_date') or "present"
+            time_range = f"({created_at} - {expiration_date})" if created_at else "(unknown date range)"
             output_lines.append(f"  - {content} {time_range}")
 
         output_lines.append("</FACTS>")
-
         return "\n".join(output_lines)
 
 def test1():
