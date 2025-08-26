@@ -57,7 +57,8 @@ def add_messages():
     # client.add(messages, user_id="alex", async_mode=True)
 
 def search_in_memory():
-    query = "What can I cook for dinner tonight?"
+    from memory_learn.mem0_learn.facts_formatter import convert_to_facts
+    query = "What are my travel plans?"
 
     filters = {
        "OR":[
@@ -67,8 +68,13 @@ def search_in_memory():
        ]
     }
 
-    result = client.search(query, version="v2", filters=filters, keyword_search=True)
+    result = client.search(query, version="v2", filters=filters)
     print(result)
+
+    result = convert_to_facts(result)
+    print(result)
+
+
 
     # result = client.history("ed09c287-b438-43b1-b2f6-835b61f864ad")
     # print(result)
@@ -151,7 +157,7 @@ def add_message_for_agent(messages, agent_id="support-bot"):
 if __name__ == '__main__':
     # add_messages_agent()
     # add_messages()
-    # search_in_memory()
+    search_in_memory()
     # get_all_facts()
-    get_summary("user1")
+    # get_summary("user1")
     # get_all_facts()
