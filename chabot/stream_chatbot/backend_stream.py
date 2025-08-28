@@ -13,6 +13,7 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.config import get_stream_writer
 from typing_extensions import TypedDict
 
+load_dotenv()
 # ===== 状态定义 =====
 class ChatState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
@@ -28,7 +29,7 @@ def make_call_model(llm: ChatTongyi):
             full_response += chunk.content
 
         # 返回更新后的状态，保存完整生成内容
-        return {"messages": state["messages"] + [AIMessage(content=full_response)]}
+        return {"messages": [AIMessage(content=full_response)]}
 
     return call_model
 
@@ -69,6 +70,7 @@ class ChatBackend:
 
     def save_thread(self, thread_id: str, state: Dict):
         """保存完整状态到 SQLite"""
+        print("save thread", thread_id, state)
         cursor = self.conn.cursor()
         state_json = json.dumps(state, ensure_ascii=False)
         cursor.execute("""
@@ -80,6 +82,7 @@ class ChatBackend:
 
     def load_thread(self, thread_id: str) -> Dict:
         """从 SQLite 加载历史对话"""
+        print("load_thread", thread_id)
         cursor = self.conn.cursor()
         cursor.execute("SELECT state FROM threads WHERE thread_id=?", (thread_id,))
         row = cursor.fetchone()
@@ -87,13 +90,24 @@ class ChatBackend:
             return {"messages": []}
         state_json = row[0]
         state = json.loads(state_json)
+        print("load thread state", state)
         return state
 
-    def chat_stream(self, user_input: str, thread_id: str):
+    def get_all_thread(self) -> List:
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT thread_id FROM threads ORDER BY rowid DESC")
+        all_threads = [row[0] for row in cursor.fetchall()]
+        return all_threads
 
+    def chat_stream(self, user_input: str, thread_id: str):
+        print("thread_id", thread_id)
         state = self.load_thread(thread_id)
+        if not state:
+            state = {"messages":[{"role": "user", "content": user_input}]}
+        else:
+            state.get("messages").append({"role": "user", "content": user_input})
         messages: List[Dict] = state.get("messages", [])
-        messages.append({"role": "user", "content": user_input})
+        # messages.append({"role": "user", "content": user_input})
 
         # 2️⃣ 流式输出
         full_text = ""
@@ -103,12 +117,14 @@ class ChatBackend:
                 full_text += chunk["llm_chunk"]
                 yield chunk["llm_chunk"]
 
+        print("state", state)
+
         messages.append({"role": "assistant", "content": full_text})
         self.save_thread(thread_id, {"messages": messages})
 
 
 if __name__ == "__main__":
-    load_dotenv()
+
     api_key = os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
         raise ValueError("请在环境变量中设置 DASHSCOPE_API_KEY")

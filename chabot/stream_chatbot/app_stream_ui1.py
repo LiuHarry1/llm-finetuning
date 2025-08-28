@@ -5,6 +5,8 @@ import uuid
 import streamlit as st
 from backend_stream import ChatBackend
 
+# streamlit run app_stream_ui1.py
+
 st.set_page_config(page_title="Chatbot", page_icon="💬", layout="wide")
 
 # ======== CSS =========
@@ -46,24 +48,32 @@ backend = ChatBackend(api_key=api_key, model_name=model_name, temperature=temper
 # ======== 左侧历史会话列表 ======
 st.sidebar.markdown("## 🗂 历史会话")
 
-# 获取所有线程 ID
-cursor = backend.conn.cursor()
-cursor.execute("SELECT thread_id FROM threads ORDER BY rowid DESC")
-all_threads = [row[0] for row in cursor.fetchall()]
+all_threads = backend.get_all_thread()
 
-# 会话选择
-selected_thread = st.sidebar.selectbox("选择会话", ["新建会话"] + all_threads)
-
-# 新建会话
-if selected_thread == "新建会话":
-    new_id = str(uuid.uuid4())
-    st.session_state.thread_id = new_id
+# 新建会话按钮
+if st.sidebar.button("➕ 新建会话"):
+    new_thread_id = str(uuid.uuid4())
+    st.session_state.thread_id = new_thread_id
     st.session_state.chat_display = []
-else:
+    backend.save_thread(new_thread_id, [])
+    all_threads.insert(0, new_thread_id)
+
+# 只显示已有会话供切换
+selected_thread = st.sidebar.selectbox(
+    "选择历史会话",
+    all_threads,
+    index=0 if st.session_state.get("thread_id") is None else all_threads.index(st.session_state.thread_id) if st.session_state.thread_id in all_threads else 0
+)
+
+# 如果选择了不同会话，则加载对应历史
+if selected_thread and selected_thread != st.session_state.get("thread_id"):
     st.session_state.thread_id = selected_thread
-    # 加载对应历史
     state = backend.load_thread(selected_thread)
-    st.session_state.chat_display = [(msg.get("role", "assistant"), msg.get("content", "")) for msg in state.get("messages", [])]
+    if state:
+        st.session_state.chat_display = [(msg.get("role", "assistant"), msg.get("content", "")) for msg in state.get("messages", [])]
+    else:
+        st.session_state.chat_display = []
+
 
 # 清空当前会话
 if st.sidebar.button("🗑️ 清空当前会话"):
