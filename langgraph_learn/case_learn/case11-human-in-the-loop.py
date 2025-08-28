@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from dotenv import load_dotenv
 from langchain_tavily import TavilySearch
 from langchain_core.tools import tool
 from typing_extensions import TypedDict
@@ -11,14 +12,10 @@ from langchain_community.chat_models import ChatTongyi
 import os
 from langgraph.types import Command, interrupt
 
+load_dotenv()
+
 llm = ChatTongyi( model="qwen-plus", api_key="sk-f256c03643e9491fb1ebc278dd958c2d")
 os.environ["TAVILY_API_KEY"] = "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"
-
-@tool
-def human_assistance(query: str) -> str:
-    """Request assistance from a human."""
-    human_response = interrupt({"query": query})
-    return human_response["data"]
 
 
 class State(TypedDict):
@@ -29,6 +26,7 @@ graph_builder = StateGraph(State)
 @tool
 def human_assistance(query: str) -> str:
     """Request assistance from a human."""
+
     human_response = interrupt({"query": query})
     print("human_response", human_response)
     return human_response["data"]
