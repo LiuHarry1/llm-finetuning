@@ -45,3 +45,14 @@ llama-cli -m C:\Users\Harry\PycharmProjects\llm-finetuning\lora_learn\health_ft\
 
 
 https://bailian.console.aliyun.com/?tab=model#/model-market
+
+
+
+启动 deekseek r1:1.5b . 
+ollama run deepseek-r1:1.5b
+
+open webui
+
+启动 autogenstadio
+pip install -U autogenstudio
+autogenstudio ui --port 8081
