@@ -51,7 +51,9 @@ https://bailian.console.aliyun.com/?tab=model#/model-market
 启动 deekseek r1:1.5b . 
 ollama run deepseek-r1:1.5b
 
-open webui
+https://github.com/open-webui/open-webui
+pip install open-webui
+open-webui serve
 
 启动 autogenstadio
 pip install -U autogenstudio
