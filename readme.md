@@ -58,3 +58,10 @@ open-webui serve
 启动 autogenstadio
 pip install -U autogenstudio
 autogenstudio ui --port 8081
+
+https://langchain-ai.github.io/langgraph/concepts/memory/#episodic-memory
+https://langchain-ai.github.io/langgraph/concepts/memory/#procedural-memory
+https://arxiv.org/abs/2303.11366?utm_source=chatgpt.com
+https://huggingface.co/blog/Kseniase/reflection?utm_source=chatgpt.com
+https://arxiv.org/abs/2310.11511?ref=blog.langchain.com
+https://blog.langchain.com/agentic-rag-with-langgraph/?utm_source=chatgpt.com
