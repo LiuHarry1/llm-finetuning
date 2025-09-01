@@ -13,7 +13,7 @@
    pip install -U streamlit langgraph langchain-core langchain-openai typing_extensions
 
 2) 启动：
-   streamlit run app.py
+   streamlit run app_team.py
 
 3) 在侧边栏填入 API Key（或使用环境变量 OPENAI_API_KEY），选择模型，然后聊天即可。
 

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LangGraph HITL Demo</title>
+</head>
+<body>
+<h1>LangGraph Human-in-the-Loop Demo</h1>
+<div id="chat-box" style="border:1px solid #ccc; padding:10px; width:500px; height:400px; overflow:auto;"></div>
+<input type="text" id="user-input" style="width:400px;">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+let ws = new WebSocket(`ws://${location.host}/ws`);
+
+ws.onmessage = function(event){
+    const data = JSON.parse(event.data);
+    const chatBox = document.getElementById("chat-box");
+
+    if(data.type === "human_review"){
+        // Human-in-the-loop: 显示消息并允许编辑
+        let userMsg = prompt("请确认或修改消息:", data.content);
+        ws.send(JSON.stringify({final_message: userMsg}));
+    } else if(data.type === "bot_stream"){
+        // 流式显示机器人输出
+        let lastBotDiv = chatBox.querySelector(".bot:last-child");
+        if(!lastBotDiv){
+            lastBotDiv = document.createElement("div");
+            lastBotDiv.className = "bot";
+            lastBotDiv.innerHTML = "<b>Bot:</b> ";
+            chatBox.appendChild(lastBotDiv);
+        }
+        lastBotDiv.innerHTML += data.content;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } else if(data.type === "done"){
+        console.log("Bot 完成输出:", data.full_content);
+    }
+};
+
+function sendMessage(){
+    const input = document.getElementById("user-input");
+    const msg = input.value;
+    input.value = "";
+
+    const chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML += `<div><b>You:</b> ${msg}</div>`;
+
+    ws.send(JSON.stringify({message: msg}));
+}
+</script>
+</body>
+</html>

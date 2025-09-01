@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangGraph HITL Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #chat-container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat-box {
+            flex: 1;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin: 10px 0;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.bot {
+            text-align: left;
+        }
+
+        .message.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #send-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #user-input:disabled,
+        #send-button:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>LangGraph Human-in-the-Loop Demo</h1>
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Type a message...">
+            <button id="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const ws = new WebSocket(`ws://${location.host}/ws`);
+
+        ws.onmessage = function(event){
+            const data = JSON.parse(event.data);
+            const chatBox = document.getElementById("chat-box");
+
+            if(data.type === "human_review"){
+                // let userMsg = prompt("请确认或修改消息:", data.content);
+                let userMsg = data.content
+                ws.send(JSON.stringify({final_message: userMsg}));
+            } else if(data.type === "bot_stream"){
+                let lastBotDiv = chatBox.querySelector(".bot:last-child");
+                if(!lastBotDiv){
+                    lastBotDiv = document.createElement("div");
+                    lastBotDiv.className = "message bot";
+                    lastBotDiv.innerHTML = "<b>Bot:</b> ";
+                    chatBox.appendChild(lastBotDiv);
+                }
+                lastBotDiv.innerHTML += data.content;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } else if(data.type === "done"){
+                console.log("Bot 完成输出:", data.full_content);
+                enableInput(); // Bot 完成后重新启用输入
+            }
+        };
+
+        document.getElementById('user-input').addEventListener('keydown', function(event){
+            if(event.key === 'Enter' && !event.target.disabled){
+                sendMessage();
+            }
+        });
+
+        function sendMessage(){
+            const input = document.getElementById("user-input");
+            const button = document.getElementById("send-button");
+            const msg = input.value;
+            if(!msg) return;
+
+            input.value = '';
+            disableInput();
+
+            const chatBox = document.getElementById("chat-box");
+            const userDiv = document.createElement("div");
+            userDiv.className = "message user";
+            userDiv.innerHTML = `<b>You:</b> ${msg}`;
+            chatBox.appendChild(userDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            ws.send(JSON.stringify({message: msg}));
+        }
+
+        function disableInput(){
+            document.getElementById("user-input").disabled = true;
+            document.getElementById("send-button").disabled = true;
+        }
+
+        function enableInput(){
+            document.getElementById("user-input").disabled = false;
+            document.getElementById("send-button").disabled = false;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>流式聊天机器人</title>
+</head>
+<body>
+    <h1>Chat with LLM (Stream)</h1>
+    <div id="chat-box" style="border:1px solid #ccc; padding:10px; width:400px; height:300px; overflow:auto;"></div>
+    <input type="text" id="user-input" style="width:300px;">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById("user-input");
+            const message = input.value;
+            input.value = "";
+
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<div><b>You:</b> ${message}</div>`;
+
+            // 使用 fetch + ReadableStream 实现前端流式接收
+            fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message})
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let botDiv = document.createElement("div");
+                botDiv.innerHTML = `<b>Bot:</b> `;
+                chatBox.appendChild(botDiv);
+
+                function read() {
+                    reader.read().then(({done, value}) => {
+                        if(done) {
+
+                            return;
+                        }
+                        let str = decoder.decode(value, {stream: true});
+                        // SSE 解析
+                        str.split("\n\n").forEach(line => {
+                            if(line.startsWith("data:")){
+                                let data = JSON.parse(line.replace("data: ", ""));
+                                if(data.content){
+                                    botDiv.innerHTML += data.content;
+                                    chatBox.scrollTop = chatBox.scrollHeight;
+                                }
+                            }
+                        });
+                        read();
+                    });
+                }
+                read();
+            });
+        }
+    </script>
+</body>
+</html>
