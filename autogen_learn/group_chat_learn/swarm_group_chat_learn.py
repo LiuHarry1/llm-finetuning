@@ -8,6 +8,7 @@ from autogen_agentchat.teams import RoundRobinGroupChat, Swarm
 from autogen_agentchat.ui import Console
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from dotenv import load_dotenv
+from autogen_agentchat.base import Handoff
 
 # Create the agents.
 

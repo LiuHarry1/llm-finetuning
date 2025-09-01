@@ -17,6 +17,5 @@ model_client = OpenAIChatCompletionClient(
         "json_output": True,
         "family": "qwen",
         "structured_output": True,
-        "multiple_system_messages": True
     },
 )

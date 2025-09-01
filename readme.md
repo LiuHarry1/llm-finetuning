@@ -59,6 +59,9 @@ open-webui serve
 pip install -U autogenstudio
 autogenstudio ui --port 8081
 
+
+https://github.com/microsoft/autogen/blob/main/python/samples/agentchat_fastapi/app_team.py
+
 https://langchain-ai.github.io/langgraph/concepts/memory/#episodic-memory
 https://langchain-ai.github.io/langgraph/concepts/memory/#procedural-memory
 https://arxiv.org/abs/2303.11366?utm_source=chatgpt.com

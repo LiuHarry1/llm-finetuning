@@ -77,6 +77,7 @@ async def chatbot():
         thread_context_mode="summary"
     )
 
+    # memory.update_context()
     # Create agent with Zep memory
     agent = AssistantAgent(
         name="MemoryAwareAssistant",

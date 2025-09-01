@@ -23,6 +23,7 @@ agent = AssistantAgent(
     system_message="Categorize the input as happy, sad, or neutral following the JSON format.",
     # Define the output content type of the agent.
     output_content_type=AgentResponse,
+    # reflect_on_tool_use=True
 )
 async def main():
     # agent.on_messages()
