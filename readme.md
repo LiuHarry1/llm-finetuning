@@ -68,3 +68,6 @@ https://arxiv.org/abs/2303.11366?utm_source=chatgpt.com
 https://huggingface.co/blog/Kseniase/reflection?utm_source=chatgpt.com
 https://arxiv.org/abs/2310.11511?ref=blog.langchain.com
 https://blog.langchain.com/agentic-rag-with-langgraph/?utm_source=chatgpt.com
+
+
+https://langchain-ai.github.io/langmem/guides/summarization/#using-in-a-react-agent
