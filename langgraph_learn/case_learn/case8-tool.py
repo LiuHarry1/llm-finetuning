@@ -83,6 +83,10 @@ graph_builder.add_edge("tools", "chatbot")
 graph_builder.add_edge(START, "chatbot")
 graph = graph_builder.compile()
 
+png_data = graph.get_graph().draw_mermaid_png()
+with open("graph.png", "wb") as f:
+    f.write(png_data)
+
 # 打印图结构
 print(graph.get_graph().draw_ascii())
 

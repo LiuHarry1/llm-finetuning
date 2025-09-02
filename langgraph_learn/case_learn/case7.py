@@ -34,7 +34,6 @@ graph_builder.add_node("nodeA", nodeA)
 graph_builder.add_node("nodeB", nodeB)
 graph_builder.add_node("merge_node", merge_node)
 
-
 # 设置入口和出口
 graph_builder.set_entry_point("node_start")
 graph_builder.set_finish_point("merge_node")
@@ -54,13 +53,9 @@ app = graph_builder.compile()
 result = app.invoke({"input": "初始输入"})
 print("\n最终结果：", result)
 
-
-# stream：逐步打印中间结果
-for step in app.stream({"input": "初始输入"}):
-    print("流式输出：", step)
-
 # 打印图结构
+print(app.get_graph().draw_ascii())
+
 png_data = app.get_graph().draw_mermaid_png()
 with open("graph.png", "wb") as f:
     f.write(png_data)
-print(app.get_graph().draw_ascii())

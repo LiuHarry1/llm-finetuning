@@ -33,6 +33,10 @@ app = graph_builder.compile()
 result = app.invoke({"input": "初始输入"})
 print(result)
 
+png_data = app.get_graph().draw_mermaid_png()
+with open("graph.png", "wb") as f:
+    f.write(png_data)
+
 # 打印图结构
 print(app.get_graph().draw_ascii())
 

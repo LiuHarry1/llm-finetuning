@@ -94,7 +94,7 @@ workflow.add_edge("review", "execute")
 workflow.add_edge("execute", END)
 
 memory = MemorySaver()
-app = workflow.compile(checkpointer=memory)
+graph = workflow.compile(checkpointer=memory)
 
 # ------------------------------
 # 测试运行
@@ -102,25 +102,35 @@ app = workflow.compile(checkpointer=memory)
 if __name__ == "__main__":
     print("=== OpenShift Agent (LangGraph HITL Demo) ===")
     user_query = input("请输入操作描述: ")
-
+    config = {"configurable": {"thread_id": "demo"}}
     # 运行 Agent，增加 configurable 参数
-    result = app.invoke(
+    result = graph.invoke(
         {"user_input": user_query},
-        config={"configurable": {"thread_id": "demo"}}
+        config=config
     )
 
     print("\n=== 最终状态 ===")
     print(result)
 
-    if result['__interrupt__']:
-        value = result['__interrupt__'][0].value
+
+    state = graph.get_state(config)
+
+    print(state)
+    print(state.interrupts)
+
+    if state.interrupts:
+
+        value = state.interrupts[0].value
         question = value.get("question", "")
 
         is_approve = input(question+": ")
-        result = app.invoke(
+        result = graph.invoke(
             Command(resume={"approval":is_approve}),
             config={"configurable": {"thread_id": "demo"}}
         )
+
+    state = graph.get_state(config)
+
 
 
 

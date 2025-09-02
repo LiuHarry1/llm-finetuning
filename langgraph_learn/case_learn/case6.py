@@ -40,3 +40,7 @@ app = graph.compile()
 result = app.invoke({"messages": []})
 
 print("\n最终结果：", result)
+
+png_data = app.get_graph().draw_mermaid_png()
+with open("graph.png", "wb") as f:
+    f.write(png_data)

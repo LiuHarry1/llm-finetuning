@@ -44,3 +44,6 @@ print("\n最终结果：", result)
 
 # 打印图结构
 print(app.get_graph().draw_ascii())
+png_data = app.get_graph().draw_mermaid_png()
+with open("graph.png", "wb") as f:
+    f.write(png_data)
