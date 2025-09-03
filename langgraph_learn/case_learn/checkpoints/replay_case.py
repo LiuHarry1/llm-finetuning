@@ -51,3 +51,5 @@ history = list(graph.get_state_history(config))
 print("执行历史回放后：")
 for i, state in enumerate(reversed(history), start=1):  # 从最早到最新
     print(f"Step {i}: {state.values}")
+
+

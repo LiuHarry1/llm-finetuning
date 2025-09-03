@@ -27,3 +27,5 @@ graph = workflow.compile(checkpointer=checkpointer)
 
 config = {"configurable": {"thread_id": "1"}}
 graph.invoke({"foo": ""}, config)
+
+graph.get_state_history()
