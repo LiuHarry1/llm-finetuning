@@ -71,3 +71,6 @@ https://blog.langchain.com/agentic-rag-with-langgraph/?utm_source=chatgpt.com
 
 
 https://langchain-ai.github.io/langmem/guides/summarization/#using-in-a-react-agent
+
+
+https://apxml.com/courses/optimizing-rag-for-production/chapter-2-advanced-retrieval-optimization/query-augmentation-rag?utm_source=chatgpt.com
