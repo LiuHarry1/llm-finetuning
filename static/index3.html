@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI 问答 + 代码执行 Demo</title>
+  <style>
+    body { font-family: sans-serif; background: #f9fafb; margin: 0; padding: 2rem; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    input { width: 70%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 8px; }
+    button { padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    #result { margin-top: 1.5rem; white-space: pre-wrap; }
+    img { max-width: 100%; margin-top: 1rem; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI 问答 + 代码执行 Demo</h1>
+    <div>
+      <input id="query" type="text" placeholder="输入你的问题，例如：生成365天随机温度并画图" />
+      <button onclick="ask()">提问</button>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function ask() {
+      const query = document.getElementById("query").value;
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "思考中...";
+      const res = await fetch("http://localhost:8000/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json();
+      const response = data.response;
+      if (response.includes("/static/")) {
+        const imgUrl = "http://localhost:8000" + response.split(": ")[1];
+        resultDiv.innerHTML = `<p>${response}</p><img src="${imgUrl}" />`;
+      } else {
+        resultDiv.innerText = response;
+      }
+    }
+  </script>
+</body>
+</html>

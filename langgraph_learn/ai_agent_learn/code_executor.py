@@ -4,7 +4,7 @@ python_tool = PythonREPLTool()
 def test1():
 
 
-    code_to_run = "asdfasf```python print(sum([1, 2, 3, 4, 5])) ```dads"
+    code_to_run = "```python print(sum1([1, 2, 3, 4, 5])) ```"
 
     result = python_tool.run(code_to_run)
 
