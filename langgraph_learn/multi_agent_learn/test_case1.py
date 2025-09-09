@@ -2,7 +2,7 @@ from langchain_community.chat_models import ChatTongyi
 from langgraph_supervisor import create_supervisor
 from langgraph.prebuilt import create_react_agent
 # https://github.com/langchain-ai/langgraph-supervisor-py?tab=readme-ov-file
-
+# https://langchain-ai.github.io/langgraph/how-tos/multi_agent/?utm_source=chatgpt.com#create-handoffs
 
 # model = ChatOpenAI(model="gpt-4o")
 
