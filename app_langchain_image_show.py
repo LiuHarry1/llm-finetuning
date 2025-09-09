@@ -49,10 +49,10 @@ def python_repl_tool(code: str) -> str:
         if plt.get_fignums():
             plt.savefig(img_path)
             plt.close()
-            print(f"图表已生成: /static/{img_filename}")
+            print(f"图表已生成: http://localhost:8000/static/{img_filename}")
             if os.path.exists(img_path):
                 # 👇 返回绝对明确的 JSON-like 文本，避免 LLM 自己幻想
-                return f"图表已生成，请在此路径访问: /static/{img_filename}"
+                return f"图表已生成，请在此路径访问: http://localhost:8000/static/{img_filename}"
             return "代码执行完成，无图表生成。"
         return "代码执行完成，无图表生成。"
     except Exception as e:
@@ -103,7 +103,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    with open("frontend/index.html", "r", encoding="utf-8") as f:
+    with open("static/langchain_image_show.html", "r", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
 
@@ -121,7 +121,7 @@ async def ask(request: Request):
 
 
 def main():
-    uvicorn.run("fastapi_ui:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("app_langchain_image_show:app", host="127.0.0.1", port=8000, reload=True)
 
 
 if __name__ == "__main__":
