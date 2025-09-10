@@ -59,6 +59,8 @@ open-webui serve
 pip install -U autogenstudio
 autogenstudio ui --port 8081
 
+pip install vllm -i https://pypi.tuna.tsinghua.edu.cn/simple
+
 
 https://github.com/microsoft/autogen/blob/main/python/samples/agentchat_fastapi/app_team.py
 

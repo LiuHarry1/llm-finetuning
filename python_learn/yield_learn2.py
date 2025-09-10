@@ -14,6 +14,33 @@ def llm_with_hitl(prompt):
     yield step3
 
 gen = llm_with_hitl("写一首诗")
+print(gen)
 print(next(gen))                   # 模型生成初稿
+
 print(gen.send("修改"))            # 人类说“修改”
 print(gen.send("接受最终版本"))    # 人类确认 → 得到最终输出
+
+
+def my_gen(n):
+    for i in range(n):
+        yield i * i
+
+gen = my_gen(3)
+print(next(gen))  # 0
+print(next(gen))  # 1
+print(next(gen))  # 4
+
+
+def coro():
+    print("starting coro")
+    while True:
+        x = yield
+        print(f"收到: {x}")
+
+c = coro()
+print(c)
+next(c)        # 启动协程
+next(c)
+next(c)
+# c.send(10)     # 收到: 10
+# c.send(20)     # 收到: 20
