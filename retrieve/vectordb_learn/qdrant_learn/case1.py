@@ -1,13 +1,15 @@
-from qdrant_client import QdrantClient
+from qdrant_client import QdrantClient, models
 from qdrant_client.models import Filter, FieldCondition, MatchValue, SearchRequest, MatchText, VectorParams, Distance
 import json
 
 # 连接到 Qdrant
 client = QdrantClient("localhost", port=6333)
 
+models.SparseVector
+
 # 先创建集合并插入一些数据
 client.recreate_collection(
-    collection_name="bm25_demo",
+    collection_name="bm25_demo1",
     vectors_config=VectorParams(size=4, distance=Distance.DOT)  # 使用 DOT 确保兼容性
 )
 
@@ -42,7 +44,7 @@ documents = [
 ]
 
 client.upsert(
-    collection_name="bm25_demo",
+    collection_name="bm25_demo1",
     points=documents
 )
 
@@ -59,7 +61,7 @@ def bm25_search_with_search_request():
     )
 
     results = client.search(
-        collection_name="bm25_demo",
+        collection_name="bm25_demo1",
         search_request=search_request
     )
 
@@ -75,7 +77,7 @@ def bm25_search_with_search_request():
 def bm25_search_with_query_filter():
     """使用 query_filter 进行文本搜索"""
     results = client.query_points(
-        collection_name="bm25_demo",
+        collection_name="bm25_demo1",
         query_filter=Filter(
             must=[FieldCondition(key="text", match=MatchText(text="神经网络"))]
         ),
@@ -95,6 +97,8 @@ def bm25_search_with_query_filter():
 
 try:
     results2 = bm25_search_with_query_filter()
+
+
 except Exception as e:
     print(f"query_filter 方法失败: {e}")
 
@@ -104,7 +108,7 @@ def basic_text_search():
     """基础文本搜索"""
     # 获取所有点然后本地过滤（不推荐用于大量数据）
     all_points = client.scroll(
-        collection_name="bm25_demo",
+        collection_name="bm25_demo1",
         limit=100,
         with_payload=True
     )[0]
@@ -122,6 +126,7 @@ def basic_text_search():
         print("---")
     return filtered_results
 
-
-# 运行基础搜索
-basic_text_search()
+if __name__ == '__main__':
+    # 运行基础搜索
+    # basic_text_search()
+    bm25_search_with_search_request()
