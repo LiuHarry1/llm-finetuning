@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 from typing import List, Dict, Any
 
@@ -112,7 +114,16 @@ def example_usage():
     fused_results = weighted_fusion(bm25_results, vector_results, bm25_weight, vector_weight)
 
 
+def use_fusion(query):
+    has_number = bool(re.search(r'\d+', query))
+    query_len = len(query.split())
+    keyword_tokens = ["alert", "id", "号", "警报"]  # 可扩展
+    keyword_present = any(k in query.lower() for k in keyword_tokens)
 
+    # 阈值策略
+    if has_number or keyword_present or query_len <= 5:
+        return True
+    return False
 
 
 def adaptive_weighting(query: str, default_bm25_weight: float = 0.4):
