@@ -1,6 +1,7 @@
 import os
 import base64
 import pytesseract
+from llama_index.readers.file import PDFReader
 from pdf2image import convert_from_path
 from bs4 import BeautifulSoup
 
@@ -34,9 +35,21 @@ def pdf_to_markdown(pdf_path):
 
     return markdown_text
 
+def pdf_read():
+
+    reader = PDFReader()
+    documents = reader.load_data("../data/test.pdf")
+
+    for document in documents:
+        print(document)
+
+    # documents 是已结构化的 Document 对象，可直接用于索引
+
+
 # Example usage
 if __name__ == "__main__":
-    pdf_path = "../data/test.pdf"  # Path to your PDF file
-    markdown_output = pdf_to_markdown(pdf_path)
-    with open("../data/test.md", "w") as file:
-        file.write(markdown_output)
+    # pdf_path = "../data/test.pdf"  # Path to your PDF file
+    # markdown_output = pdf_to_markdown(pdf_path)
+    # with open("../data/test.md", "w") as file:
+    #     file.write(markdown_output)
+    pdf_read()

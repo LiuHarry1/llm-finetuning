@@ -5,14 +5,14 @@ import pypandoc
 def convert_to_markdown(word_file):
     # output = pypandoc.convert_file("../data/test3.docx", "md", outputfile="../data/test3.md")
 
-
-
     output = pypandoc.convert_file(
-        "../data/test3.docx",
+        "../data/test2.docx",
         "md",
-        outputfile="../data/test3.md",
+        outputfile="../data/test2.md",
         extra_args=["--extract-media=../data/media"]
     )
+
+    # output = pypandoc.convert_file('somefile.md', 'rst')
 
     print("✅ 转换完成：output.md")
 
@@ -57,9 +57,9 @@ def pdf2markdown(pdf_file):
 
 
 if __name__ == '__main__':
-    # convert_to_markdown()
+    convert_to_markdown("")
     # convert_from_pdf_to_markdown("../data/test.pdf", "../data/test.md")
-    get_plain_text_from_pdf("../data/test.pdf")
+    # get_plain_text_from_pdf("../data/test.pdf")
     # pdf2markdown("../data/test.pdf")
 
 
