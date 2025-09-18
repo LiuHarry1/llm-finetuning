@@ -2,6 +2,8 @@ import re
 
 import fitz  # PyMuPDF
 import pymupdf4llm
+from langchain_text_splitters import MarkdownHeaderTextSplitter
+
 
 def test1():
     # 打开 PDF
@@ -74,9 +76,30 @@ def test6():
     print(data[0]['metadata'])
     print(data[0]['text'][:200])  # 打印前 200 个字符
 
+def test7():
+    import pymupdf4llm
+    from langchain.text_splitter import MarkdownTextSplitter
+
+    # Get the MD text
+    md_text = pymupdf4llm.to_markdown("../data/test.pdf")  # get markdown for all pages
+
+    splitter = MarkdownTextSplitter(chunk_size=100, chunk_overlap=0)
+    # splitter = MarkdownHeaderTextSplitter(
+    #     headers_to_split_on=["#", "##", "###"],  # 按标题拆分
+    # )
+
+    documents = splitter.create_documents([md_text])
+
+    for doc in documents:
+        print(doc.metadata)
+        print(doc.page_content)
+
+
+
 if __name__ == '__main__':
     # test1()
     # test2()
     # test3()
     # test4()
-    test6()
+    # test6()
+    test7()
