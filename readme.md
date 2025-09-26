@@ -76,3 +76,20 @@ https://langchain-ai.github.io/langmem/guides/summarization/#using-in-a-react-ag
 
 
 https://apxml.com/courses/optimizing-rag-for-production/chapter-2-advanced-retrieval-optimization/query-augmentation-rag?utm_source=chatgpt.com
+
+
+
+# gpt or claude model application
+gpt-5
+
+https://gptsapi.net/api
+
+https://2233.ai/
+
+sk-Fdme68cafffe0c4f1a3be112a27f3d77281e04291b6QTLDF
+
+from openai import OpenAI
+  client = OpenAI(
+      base_url="https://api.gptsapi.net/v1",
+      api_key=""
+  )
