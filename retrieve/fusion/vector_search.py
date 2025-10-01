@@ -1,52 +1,171 @@
-import torch
-from transformers import AutoTokenizer, AutoModel
-import torch.nn.functional as F
+import pandas as pd
+from sentence_transformers import SentenceTransformer
+from rank_bm25 import BM25Okapi
+from pymilvus import (
+    connections,
+    utility,
+    FieldSchema,
+    CollectionSchema,
+    DataType,
+    Collection,
+    AnnSearchRequest,
+    WeightedRanker,
+)
 
-# 1. 加载模型和分词器
-model_name = '/Users/harry/Documents/apps/ml/all-MiniLM-L6-v2'
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModel.from_pretrained(model_name)
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # 或 "true"
 
-# 2. 编写一个函数，计算句子embedding（mean pooling）
-def encode(texts):
-    # 支持输入列表或单句字符串
-    if isinstance(texts, str):
-        texts = [texts]
-    encoded_input = tokenizer(texts, padding=True, truncation=True, return_tensors='pt')
-    with torch.no_grad():
-        model_output = model(**encoded_input)
-    # model_output.last_hidden_state shape: (batch_size, seq_len, hidden_size)
-    token_embeddings = model_output.last_hidden_state
-    attention_mask = encoded_input['attention_mask'].unsqueeze(-1).expand(token_embeddings.size()).float()
-    # Mean Pooling
-    sum_embeddings = torch.sum(token_embeddings * attention_mask, dim=1)
-    sum_mask = torch.clamp(attention_mask.sum(dim=1), min=1e-9)
-    embeddings = sum_embeddings / sum_mask
-    return embeddings
+# 1. 读取数据
+import pandas as pd
 
-# 3. 准备数据
-chunks = [
-    "BM25 is a probabilistic information retrieval algorithm.",
-    "Neural networks can learn semantic representations of text.",
-    "Quantum decoherence causes classical behavior in quantum systems.",
-    "Retrieval-augmented generation combines search with language models.",
-    "Cosine similarity is commonly used in vector search systems."
+file_path = "/Users/harry/PycharmProjects/llm-funetuning/retrieve/milvus_learn/quora_duplicate_questions.tsv"
+df = pd.read_csv(file_path, sep="\t")
+questions = set()
+for _, row in df.iterrows():
+    obj = row.to_dict()
+    questions.add(obj["question1"][:512])
+    questions.add(obj["question2"][:512])
+    if len(questions) > 500:
+        break
+docs = list(questions)
+
+print(docs[0])
+
+# 2. Dense embedding: MiniLM
+from pathlib import Path
+
+
+from transformers import AutoModel, AutoTokenizer
+from sentence_transformers import SentenceTransformer, models
+
+# 把HF transformers模型包装成SentenceTransformer
+word_embedding_model = models.Transformer("/Users/harry/Documents/apps/ml/all-MiniLM-L6-v2")
+pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
+dense_model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
+
+dense_embeddings = dense_model.encode(docs, convert_to_numpy=True)
+
+
+dense_dim = dense_embeddings.shape[1]
+
+# 3. Sparse embedding: BM25
+# tokenizing for BM25
+tokenized_docs = [doc.split() for doc in docs]
+bm25 = BM25Okapi(tokenized_docs)
+
+# 用 BM25 的稀疏向量存到 Milvus，需要把每个 doc 转换为 {token:score} 的 sparse vector
+sparse_vectors = []
+for doc_tokens in tokenized_docs:
+    scores = bm25.get_scores(doc_tokens)  # 这是针对整个语料的分数
+    # 简单做法：每个 doc 自身的 token 用1，其他用0（BM25本身是查询时计算分数的）
+    # Milvus支持稀疏向量用字典传入 {int:float}
+    vec_dict = {}
+    for idx, token in enumerate(doc_tokens):
+        vec_dict[idx] = 1.0  # 这里只是占位, 可替换成你的BM25权重
+    sparse_vectors.append(vec_dict)
+
+# 4. 建立 Milvus collection
+connections.connect(uri="./milvus.db")
+
+fields = [
+    FieldSchema(
+        name="pk", dtype=DataType.VARCHAR, is_primary=True, auto_id=True, max_length=100
+    ),
+    FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=512),
+    FieldSchema(name="sparse_vector", dtype=DataType.SPARSE_FLOAT_VECTOR),
+    FieldSchema(name="dense_vector", dtype=DataType.FLOAT_VECTOR, dim=dense_dim),
 ]
+schema = CollectionSchema(fields)
 
-query = "How does quantum decoherence work?"
+col_name = "hybrid_demo"
+if utility.has_collection(col_name):
+    Collection(col_name).drop()
+col = Collection(col_name, schema, consistency_level="Bounded")
 
-# 4. 计算 embeddings
-chunk_embeddings = encode(chunks)  # shape (5, hidden_size)
-query_embedding = encode(query)    # shape (1, hidden_size)
+sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP"}
+col.create_index("sparse_vector", sparse_index)
+dense_index = {"index_type": "AUTOINDEX", "metric_type": "IP"}
+col.create_index("dense_vector", dense_index)
+col.load()
 
-# 5. 计算余弦相似度
-cosine_scores = F.cosine_similarity(query_embedding, chunk_embeddings)
-# cosine_scores shape: (5,)
+# 5. 插入数据
+for i in range(0, len(docs), 50):
+    batched_entities = [
+        docs[i:i + 50],
+        sparse_vectors[i:i + 50],
+        dense_embeddings[i:i + 50],
+    ]
+    col.insert(batched_entities)
 
-# 6. 打印top3最相似chunk
-top_k = 3
-top_scores, top_indices = torch.topk(cosine_scores, k=top_k)
-print(f"\nQuery: {query}\nTop {top_k} relevant chunks:")
-for score, idx in zip(top_scores, top_indices):
-    print(f"Score: {score.item():.4f} | Chunk: {chunks[idx]}")
+print("Number of entities inserted:", col.num_entities)
 
+# 6. 查询
+query = input("Enter your search query: ")
+print(query)
+
+query_dense_embedding = dense_model.encode([query], convert_to_numpy=True)[0]
+
+# 对稀疏向量我们用BM25重新计算
+query_tokens = query.split()
+# BM25在查询时算分数，直接用Milvus的稀疏索引需要{int:float}
+query_sparse_vec = {}
+for idx, token in enumerate(query_tokens):
+    query_sparse_vec[idx] = 1.0  # 你也可以用bm25.get_scores(query_tokens)
+
+def dense_search(col, query_dense_embedding, limit=10):
+    search_params = {"metric_type": "IP", "params": {}}
+    res = col.search(
+        [query_dense_embedding],
+        anns_field="dense_vector",
+        limit=limit,
+        output_fields=["text"],
+        param=search_params,
+    )[0]
+    return [hit.get("text") for hit in res]
+
+def sparse_search(col, query_sparse_embedding, limit=10):
+    search_params = {"metric_type": "IP", "params": {}}
+    res = col.search(
+        [query_sparse_embedding],
+        anns_field="sparse_vector",
+        limit=limit,
+        output_fields=["text"],
+        param=search_params,
+    )[0]
+    return [hit.get("text") for hit in res]
+
+def hybrid_search(
+    col,
+    query_dense_embedding,
+    query_sparse_embedding,
+    sparse_weight=1.0,
+    dense_weight=1.0,
+    limit=10,
+):
+    dense_search_params = {"metric_type": "IP", "params": {}}
+    dense_req = AnnSearchRequest(
+        [query_dense_embedding], "dense_vector", dense_search_params, limit=limit
+    )
+    sparse_search_params = {"metric_type": "IP", "params": {}}
+    sparse_req = AnnSearchRequest(
+        [query_sparse_embedding], "sparse_vector", sparse_search_params, limit=limit
+    )
+    rerank = WeightedRanker(sparse_weight, dense_weight)
+    res = col.hybrid_search(
+        [sparse_req, dense_req], rerank=rerank, limit=limit, output_fields=["text"]
+    )[0]
+    return [hit.get("text") for hit in res]
+
+dense_results = dense_search(col, query_dense_embedding)
+sparse_results = sparse_search(col, query_sparse_vec)
+hybrid_results = hybrid_search(
+    col,
+    query_dense_embedding,
+    query_sparse_vec,
+    sparse_weight=0.7,
+    dense_weight=1.0,
+)
+
+print("Dense Results:", dense_results)
+print("Sparse Results:", sparse_results)
+print("Hybrid Results:", hybrid_results)
