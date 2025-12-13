@@ -1,0 +1,19 @@
+{
+  'user_input': '关掉announcement service 下面的所有pods ',
+  'generated_code': '```python\nfrom openshift import client, config\n\n# 加载默认的kubeconfig配置文件\nconfig.load_kube_config()\n\n# 创建CoreV1Api实例\nv1 = client.CoreV1Api()\n\n# 指定Service名称和命名空间\nservice_name = "announcement-service"\nnamespace = "default"  # 替换为实际的命名空间\n\n# 获取Service对应的Endpoints\nendpoints = v1.read_namespaced_endpoints(name=service_name, namespace=namespace)\n\n# 遍历Endpoints，找到所有关联的Pod，并删除它们\nfor subset in endpoints.subsets:\n    for address in subset.addresses:\n        if hasattr(address, \'target_ref\') and address.target_ref.kind == \'Pod\':\n            pod_name = address.target_ref.name\n            print(f"Deleting Pod: {pod_name}")\n            v1.delete_namespaced_pod(name=pod_name, namespace=namespace, body=client.V1DeleteOptions())\n```'
+},
+next=('review', ),
+config={'configurable': {'thread_id': 'demo', 'checkpoint_ns': '',
+'checkpoint_id': '1f0879c0-7e24-665a-8001-e50835d59a06'}},
+metadata={'source': 'loop', 'step': 1, 'parents': {}},
+created_at='2025-09-02T01:27:46.540243+00:00',
+parent_config={'configurable':
+{'thread_id': 'demo', 'checkpoint_ns': '', 'checkpoint_id': '1f0879c0-2911-600a-8000-5bdfcee3528f'}},
+tasks=(PregelTask(id='f41bade5-ff61-022a-6b8e-068c1695fe6a', name='review',
+path=('__pregel_pull', 'review'), error=None,
+interrupts=(Interrupt(value=
+{'question': '是否执行这段代码？(approve/reject): ',
+'generated_code': '```python\nfrom openshift import client, config\n\n# 加载默认的kubeconfig配置文件\nconfig.load_kube_config()\n\n# 创建CoreV1Api实例\nv1 = client.CoreV1Api()\n\n# 指定Service名称和命名空间\nservice_name = "announcement-service"\nnamespace = "default"  # 替换为实际的命名空间\n\n# 获取Service对应的Endpoints\nendpoints = v1.read_namespaced_endpoints(name=service_name, namespace=namespace)\n\n# 遍历Endpoints，找到所有关联的Pod，并删除它们\nfor subset in endpoints.subsets:\n    for address in subset.addresses:\n        if hasattr(address, \'target_ref\') and address.target_ref.kind == \'Pod\':\n            pod_name = address.target_ref.name\n            print(f"Deleting Pod: {pod_name}")\n            v1.delete_namespaced_pod(name=pod_name, namespace=namespace, body=client.V1DeleteOptions())\n```'
+}, id='a63226e398fe9cd20f54d6d14643190a'), ), state=None, result=None), ),
+interrupts=(Interrupt(value={'question': '是否执行这段代码？(approve/reject): ', 'generated_code': '```python\nfrom openshift import client, config\n\n# 加载默认的kubeconfig配置文件\nconfig.load_kube_config()\n\n# 创建CoreV1Api实例\nv1 = client.CoreV1Api()\n\n# 指定Service名称和命名空间\nservice_name = "announcement-service"\nnamespace = "default"  # 替换为实际的命名空间\n\n# 获取Service对应的Endpoints\nendpoints = v1.read_namespaced_endpoints(name=service_name, namespace=namespace)\n\n# 遍历Endpoints，找到所有关联的Pod，并删除它们\nfor subset in endpoints.subsets:\n    for address in subset.addresses:\n        if hasattr(address, \'target_ref\') and address.target_ref.kind == \'Pod\':\n            pod_name = address.target_ref.name\n            print(f"Deleting Pod: {pod_name}")\n            v1.delete_namespaced_pod(name=pod_name, namespace=namespace, body=client.V1DeleteOptions())\n```'},
+id='a63226e398fe9cd20f54d6d14643190a'), )
